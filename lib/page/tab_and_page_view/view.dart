@@ -12,6 +12,9 @@ class TabAndPageViewPage extends StatelessWidget {
 
   final state = Get.find<TabAndPageViewLogic>().state;
 
+  final String image =
+      'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Farticle-fd.zol-img.com.cn%2Ft_s998x562c5%2Fg5%2FM00%2F0A%2F02%2FChMkJltpVKGIQENcAAKaC93UFtUAAqi5QPdcOwAApoj403.jpg&refer=http%3A%2F%2Farticle-fd.zol-img.com.cn&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1657797160&t=b0d3ce684c3467dc7b03a2eb5c752d5e';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,15 +25,33 @@ class TabAndPageViewPage extends StatelessWidget {
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return [
+            // SliverPersistentHeader(
+            //   pinned: true,
+            //   delegate: ElevationSliverPersistentHeaderDelegate(
+            //     maxHeight: 48 + MediaQuery.of(context).padding.top,
+            //     maxElevation: 0,
+            //     child: Container(
+            //       height: 48,
+            //       margin:
+            //           EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+            //       color: Colors.white,
+            //       alignment: Alignment.center,
+            //       child: Text(toString()),
+            //     ),
+            //   ),
+            // ),
             SliverToBoxAdapter(
               child: Container(
                 height: 100.w,
                 color: Colors.green,
+                child: Image.network(
+                  image,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             SliverPersistentHeader(
               pinned: true,
-              floating: true,
               delegate: ElevationSliverPersistentHeaderDelegate(
                 child: Container(
                   color: Colors.white,
