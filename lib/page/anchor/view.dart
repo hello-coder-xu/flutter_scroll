@@ -14,6 +14,7 @@ class AnchorPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(toString()),
+        centerTitle: true,
       ),
     );
   }

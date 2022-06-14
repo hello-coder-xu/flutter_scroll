@@ -1,3 +1,4 @@
+import 'package:flutter_scroll/common/router/app_pages.dart';
 import 'package:flutter_scroll/page/home/model/home_model.dart';
 import 'package:get/get.dart';
 
@@ -17,8 +18,10 @@ class HomeLogic extends GetxController {
   void updateList() {
     state.list.clear();
     state.list
-      ..add(HomeModel(name: '自定义下拉刷新', path: ''))
-      ..add(HomeModel(name: 'viewPage加载更多', path: ''));
+      ..add(HomeModel(name: '锚点', path: AppPaths.anchor))
+      ..add(HomeModel(name: '下拉刷新', path: AppPaths.refresh))
+      ..add(HomeModel(name: '多类型List', path: AppPaths.moreTypeList))
+      ..add(HomeModel(name: 'PageView加载更多', path: AppPaths.pageViewLoadMore));
   }
 
   ///item 点击
