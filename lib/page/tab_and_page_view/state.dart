@@ -1,5 +1,6 @@
+import 'package:flutter/material.dart';
+
 class TabAndPageViewState {
-  TabAndPageViewState() {
-    ///Initialize variables
-  }
+  List<String> tabList = List.generate(5, (index) => '$index');
+  late TabController controller;
 }
