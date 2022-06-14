@@ -21,7 +21,9 @@ class HomeLogic extends GetxController {
       ..add(HomeModel(name: '锚点', path: AppPaths.anchor))
       ..add(HomeModel(name: '下拉刷新', path: AppPaths.refresh))
       ..add(HomeModel(name: '多类型List', path: AppPaths.moreTypeList))
+      ..add(HomeModel(name: 'Tab+PageView', path: AppPaths.tabAndPageView))
       ..add(HomeModel(name: 'PageView加载更多', path: AppPaths.pageViewLoadMore));
+    update();
   }
 
   ///item 点击

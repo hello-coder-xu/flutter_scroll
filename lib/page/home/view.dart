@@ -17,6 +17,12 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('滚动相关功能'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: logic.updateList,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
       ),
       body: GetBuilder<HomeLogic>(
         assignId: true,
