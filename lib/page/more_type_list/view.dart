@@ -16,6 +16,9 @@ class MoreTypeListPage extends StatelessWidget {
         title: Text(toString()),
         centerTitle: true,
       ),
+      body: const Center(
+        child: Text('功能待开发'),
+      ),
     );
   }
 }
