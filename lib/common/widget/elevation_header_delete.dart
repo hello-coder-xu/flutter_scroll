@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-class ElevationSliverPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
+///滚动时动态新增阴影效果
+class ElevationSliverPersistentHeaderDelegate
+    extends SliverPersistentHeaderDelegate {
   final Widget child;
   final double maxHeight;
   final double minHeight;
