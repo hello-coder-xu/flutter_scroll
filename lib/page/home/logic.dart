@@ -22,7 +22,8 @@ class HomeLogic extends GetxController {
       ..add(HomeModel(name: '下拉刷新', path: AppPaths.refresh))
       ..add(HomeModel(name: '多类型List', path: AppPaths.moreTypeList))
       ..add(HomeModel(name: 'Tab+PageView', path: AppPaths.tabAndPageView))
-      ..add(HomeModel(name: 'PageView加载更多', path: AppPaths.pageViewLoadMore));
+      ..add(HomeModel(name: 'PageView加载更多', path: AppPaths.pageViewLoadMore))
+      ..add(HomeModel(name: '滚动时新增阴影', path: AppPaths.elevationByScroll));
     update();
   }
 

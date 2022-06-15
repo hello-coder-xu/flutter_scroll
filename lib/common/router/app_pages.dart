@@ -1,4 +1,5 @@
 import 'package:flutter_scroll/page/anchor/view.dart';
+import 'package:flutter_scroll/page/elevation_by_scroll/view.dart';
 import 'package:flutter_scroll/page/home/view.dart';
 import 'package:flutter_scroll/page/more_type_list/view.dart';
 import 'package:flutter_scroll/page/page_view_load_more/view.dart';
@@ -13,6 +14,7 @@ abstract class AppPaths {
   static const pageViewLoadMore = '/pageViewLoadMore';
   static const refresh = '/refresh';
   static const tabAndPageView = '/tabAndPageView';
+  static const elevationByScroll = '/elevationByScroll';
 }
 
 class AppPages {
@@ -44,6 +46,10 @@ class AppPages {
     GetPage(
       name: AppPaths.tabAndPageView,
       page: () => TabAndPageViewPage(),
+    ),
+    GetPage(
+      name: AppPaths.elevationByScroll,
+      page: () => ElevationByScrollPage(),
     ),
   ];
 }
