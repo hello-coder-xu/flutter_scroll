@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_scroll/page/elevation_by_scroll/widget/elevation_by_custom.dart';
 import 'package:flutter_scroll/page/elevation_by_scroll/widget/elevation_by_nested.dart';
 import 'package:get/get.dart';
 import 'logic.dart';
@@ -17,12 +18,27 @@ class ElevationByScrollPage extends StatelessWidget {
         title: Text(toString()),
         centerTitle: true,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.red, width: 1),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              height: 300,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.red, width: 1),
+              ),
+              margin: const EdgeInsets.all(16),
+              child: const ElevationNestedScrollView(),
+            ),
+            Container(
+              height: 300,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.red, width: 1),
+              ),
+              margin: const EdgeInsets.all(16),
+              child: const ElevationCustomView(),
+            ),
+          ],
         ),
-        margin: const EdgeInsets.all(16),
-        child: const ElevationNestedScrollView(),
       ),
     );
   }
