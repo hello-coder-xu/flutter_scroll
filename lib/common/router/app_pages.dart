@@ -4,6 +4,7 @@ import 'package:flutter_scroll/page/home/view.dart';
 import 'package:flutter_scroll/page/more_type_list/view.dart';
 import 'package:flutter_scroll/page/page_view_load_more/view.dart';
 import 'package:flutter_scroll/page/refresh/view.dart';
+import 'package:flutter_scroll/page/remove_top_elevation/view.dart';
 import 'package:flutter_scroll/page/tab_and_page_view/view.dart';
 import 'package:get/get.dart';
 
@@ -15,6 +16,7 @@ abstract class AppPaths {
   static const refresh = '/refresh';
   static const tabAndPageView = '/tabAndPageView';
   static const elevationByScroll = '/elevationByScroll';
+  static const removeTopElevation = '/removeTopElevation';
 }
 
 class AppPages {
@@ -50,6 +52,10 @@ class AppPages {
     GetPage(
       name: AppPaths.elevationByScroll,
       page: () => ElevationByScrollPage(),
+    ),
+    GetPage(
+      name: AppPaths.removeTopElevation,
+      page: () => const RemoveTopElevationPage(),
     ),
   ];
 }
