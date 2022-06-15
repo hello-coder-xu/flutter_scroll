@@ -25,41 +25,51 @@ class TabAndPageViewPage extends StatelessWidget {
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return [
-            // SliverPersistentHeader(
-            //   pinned: true,
-            //   delegate: ElevationSliverPersistentHeaderDelegate(
-            //     maxHeight: 48 + MediaQuery.of(context).padding.top,
-            //     maxElevation: 0,
-            //     child: Container(
-            //       height: 48,
-            //       margin:
-            //           EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-            //       color: Colors.white,
-            //       alignment: Alignment.center,
-            //       child: Text(toString()),
-            //     ),
-            //   ),
-            // ),
             SliverToBoxAdapter(
-              child: Container(
-                height: 100.w,
-                color: Colors.green,
-                child: Image.network(
-                  image,
-                  fit: BoxFit.cover,
-                ),
+              child: Stack(
+                children: [
+                  Container(
+                    height: 200.w,
+                    width: 1.sw,
+                    color: Colors.green,
+                    child: Image.network(
+                      image,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.green.withOpacity(0.3),
+                      alignment: Alignment.centerLeft,
+                      padding: EdgeInsets.symmetric(horizontal: 8.w),
+                      child: Text(
+                        '1,顶部图片跟随滚动'
+                        '\n2,tab栏滚动到顶部时顶在最上面'
+                        '\n3,tabView第一次左右切换时，下一个页面处于最顶部位置'
+                        '\n4,tabView保存上次滚动位置',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: ElevationSliverPersistentHeaderDelegate(
-                child: Container(
-                  color: Colors.white,
-                  child: TabBar(
-                    controller: state.controller,
-                    unselectedLabelColor: Colors.black,
-                    labelColor: Colors.red,
-                    tabs: state.tabList.map((e) => Tab(text: e)).toList(),
+            SliverOverlapAbsorber(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+              sliver: SliverPersistentHeader(
+                pinned: true,
+                delegate: ElevationSliverPersistentHeaderDelegate(
+                  child: Container(
+                    color: Colors.white,
+                    child: TabBar(
+                      controller: state.controller,
+                      unselectedLabelColor: Colors.black,
+                      labelColor: Colors.red,
+                      tabs: state.tabList.map((e) => Tab(text: e)).toList(),
+                    ),
                   ),
                 ),
               ),
@@ -80,14 +90,26 @@ class TabAndPageViewPage extends StatelessWidget {
 
   ///列表视图
   Widget itemView(int index, String value) {
-    return ListView.builder(
-      itemBuilder: (context, position) => Container(
-        height: 100.w,
-        alignment: Alignment.center,
-        color: Colors.primaries[position % 17],
-        child: Text('$index' '_$position'),
+    return Builder(
+      builder: (BuildContext context) => CustomScrollView(
+        key: PageStorageKey<int>(index),
+        slivers: [
+          SliverOverlapInjector(
+            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, position) => Container(
+                height: 100.w,
+                alignment: Alignment.center,
+                color: Colors.primaries[position % 17],
+                child: Text('$index' '_$position'),
+              ),
+              childCount: index + 5,
+            ),
+          ),
+        ],
       ),
-      itemCount: index + 5,
     );
   }
 }
