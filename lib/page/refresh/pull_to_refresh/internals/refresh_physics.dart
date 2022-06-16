@@ -9,27 +9,25 @@ import 'dart:math' as math;
 
 // ignore: MUST_BE_IMMUTABLE
 class RefreshPhysics extends ScrollPhysics {
-  final double? maxOverScrollExtent, maxUnderScrollExtent;
-  final double? topHitBoundary, bottomHitBoundary;
+  final double? maxOverScrollExtent;
+  final double? topHitBoundary;
   final SpringDescription? springDescription;
   final double? dragSpeedRatio;
   final RefreshController? controller;
   final int? updateFlag;
 
-  /// find out the viewport when bouncing,for compute the layoutExtent in header and footer
-  /// This does not have any impact on performance. it only  execute once
+  /// 弹跳时找出视口，用于计算页眉和页脚中的 layoutExtent
+  /// 这对性能没有任何影响。 它只执行一次
   RenderViewport? viewportRender;
 
-  /// Creates scroll physics that bounce back from the edge.
+  /// 创建从边缘反弹回来的滚动物理。
   RefreshPhysics(
       {ScrollPhysics? parent,
       this.updateFlag,
-      this.maxUnderScrollExtent,
       this.springDescription,
       this.controller,
       this.dragSpeedRatio,
       this.topHitBoundary,
-      this.bottomHitBoundary,
       this.maxOverScrollExtent})
       : super(parent: parent);
 
@@ -41,9 +39,7 @@ class RefreshPhysics extends ScrollPhysics {
       springDescription: springDescription,
       dragSpeedRatio: dragSpeedRatio,
       topHitBoundary: topHitBoundary,
-      bottomHitBoundary: bottomHitBoundary,
       controller: controller,
-      maxUnderScrollExtent: maxUnderScrollExtent,
       maxOverScrollExtent: maxOverScrollExtent,
     );
   }
@@ -73,10 +69,10 @@ class RefreshPhysics extends ScrollPhysics {
     return true;
   }
 
-  //  It seem that it was odd to do so,but I have no choose to do this for updating the state value(enablePullDown and enablePullUp),
-  // in Scrollable.dart _shouldUpdatePosition method,it use physics.runtimeType to check if the two physics is the same,this
-  // will lead to whether the newPhysics should replace oldPhysics,If flutter can provide a method such as "shouldUpdate",
-  // It can work perfectly.
+  // 这样做似乎很奇怪，但我没有选择这样做来更新状态值（enablePullDown 和 enablePullUp），
+  // 在 Scrollable.dart _shouldUpdatePosition 方法中，它使用physics.runtimeType 来检查两个物理是否相同，这个
+  // 会导致newPhysics是否应该替换oldPhysics，如果flutter可以提供“shouldUpdate”等方法，
+  // 它可以完美地工作。
   @override
   Type get runtimeType {
     if (updateFlag == 0) {
@@ -104,7 +100,7 @@ class RefreshPhysics extends ScrollPhysics {
           (overscrollPastEnd > 0.0 && offset > 0.0);
 
       final double friction = easing
-          // Apply less resistance when easing the overscroll vs tensioning.
+          // 在缓解过度滚动与张紧时施加较小的阻力。
           ? frictionFactor(
               (overscrollPast - offset.abs()) / position.viewportDimension)
           : frictionFactor(overscrollPast / position.viewportDimension);
@@ -144,7 +140,6 @@ class RefreshPhysics extends ScrollPhysics {
       return parent!.applyBoundaryConditions(position, value);
     }
     double topExtra = 0.0;
-    double? bottomExtra = 0.0;
     if (enablePullDown) {
       final RenderSliverRefresh sliverHeader =
           viewportRender!.firstChild as RenderSliverRefresh;
@@ -154,8 +149,6 @@ class RefreshPhysics extends ScrollPhysics {
     }
     final double topBoundary =
         position.minScrollExtent - maxOverScrollExtent! - topExtra;
-    final double bottomBoundary =
-        position.maxScrollExtent + maxUnderScrollExtent! + bottomExtra;
 
     // ignore: invalid_use_of_protected_member
     if (scrollPosition.activity is BallisticScrollActivity) {
@@ -165,37 +158,20 @@ class RefreshPhysics extends ScrollPhysics {
           return value + topHitBoundary!;
         }
       }
-      if (bottomHitBoundary != double.infinity) {
-        if (position.pixels < bottomHitBoundary! + position.maxScrollExtent &&
-            bottomHitBoundary! + position.maxScrollExtent < value) {
-          // hit bottom edge
-          return value - bottomHitBoundary! - position.maxScrollExtent;
-        }
-      }
     }
     if (maxOverScrollExtent != double.infinity &&
         value < topBoundary &&
         topBoundary < position.pixels) {
       return value - topBoundary;
     }
-    if (maxUnderScrollExtent != double.infinity &&
-        position.pixels < bottomBoundary &&
-        bottomBoundary < value) {
-      // hit bottom edge
-      return value - bottomBoundary;
-    }
 
-    // check user is dragging,it is import,some devices may not bounce with different frame and time,bouncing return the different velocity
+
+    // 检查用户是否正在拖动，它是导入的，某些设备可能不会以不同的帧和时间弹跳，弹跳返回不同的速度
     // ignore: invalid_use_of_protected_member
     if (scrollPosition.activity is DragScrollActivity) {
       if (maxOverScrollExtent != double.infinity &&
           value < position.pixels &&
           position.pixels <= topBoundary) {
-        return value - position.pixels;
-      }
-      if (maxUnderScrollExtent != double.infinity &&
-          bottomBoundary <= position.pixels &&
-          position.pixels < value) {
         return value - position.pixels;
       }
     }

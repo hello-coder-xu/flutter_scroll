@@ -20,30 +20,30 @@ import 'package:flutter_scroll/page/refresh/pull_to_refresh/internals/slivers.da
 /// global default indicator builder
 typedef IndicatorBuilder = Widget Function();
 
-/// a builder for attaching refresh function with the physics
+/// 用于将刷新功能与物理连接的构建器
 typedef RefresherBuilder = Widget Function(
     BuildContext context, RefreshPhysics physics);
 
-/// header state
+/// 标题状态
 enum RefreshStatus {
-  /// Initial state, when not being overscrolled into, or after the overscroll
-  /// is canceled or after done and the sliver retracted away.
+  /// 初始状态，当没有被过度滚动时，或在过度滚动之后
+  /// 被取消或完成后，条子缩回。
   idle,
 
-  /// Dragged far enough that the onRefresh callback will callback
+  /// 拖得足够远以至于 onRefresh 回调将回调
   canRefresh,
 
-  /// the indicator is refreshing,waiting for the finish callback
+  /// 指标正在刷新，等待完成回调
   refreshing,
 
-  /// the indicator refresh completed
+  /// 指标刷新完成
   completed,
 
-  /// the indicator refresh failed
+  /// 指标刷新失败
   failed,
 }
 
-/// header indicator display style
+/// 标题指示器显示样式
 enum RefreshStyle {
   /// 指示框始终跟随内容
   follow,
@@ -59,31 +59,26 @@ class SmartRefresher extends StatefulWidget {
 
   final VoidCallback? onRefresh;
 
-  /// Controll inner state
+  /// 控制内部状态
   final RefreshController controller;
 
-  /// child content builder
+  /// 子内容构建器
   final RefresherBuilder? builder;
 
-  /// copy from ScrollView,for setting in SingleChildView,not ScrollView
   final Axis? scrollDirection;
 
-  /// copy from ScrollView,for setting in SingleChildView,not ScrollView
   final bool? reverse;
 
-  /// copy from ScrollView,for setting in SingleChildView,not ScrollView
   final ScrollController? scrollController;
 
-  /// copy from ScrollView,for setting in SingleChildView,not ScrollView
   final bool? primary;
 
-  /// copy from ScrollView,for setting in SingleChildView,not ScrollView
   final ScrollPhysics? physics;
 
-  /// copy from ScrollView,for setting in SingleChildView,not ScrollView
+  /// 从 ScrollView 复制，用于在 SingleChildView 中设置，而不是 ScrollView
   final double? cacheExtent;
 
-  /// copy from ScrollView,for setting in SingleChildView,not ScrollView
+  /// 从 ScrollView 复制，用于在 SingleChildView 中设置，而不是 ScrollView
   final DragStartBehavior? dragStartBehavior;
 
   const SmartRefresher(
@@ -140,7 +135,7 @@ class SmartRefresherState extends State<SmartRefresher> {
 
   final RefreshIndicator defaultHeader = const ClassicHeader();
 
-  //build slivers from child Widget
+  //从子小部件构建Sliver
   List<Widget>? _buildSliversByChild(BuildContext context, Widget? child,
       RefreshConfiguration? configuration) {
     List<Widget>? slivers;
@@ -183,28 +178,23 @@ class SmartRefresherState extends State<SmartRefresher> {
                     .runtimeType ==
                 BouncingScrollPhysics);
     return _physics = RefreshPhysics(
-            dragSpeedRatio: conf?.dragSpeedRatio ?? 1,
-            springDescription: conf?.springDescription ??
-                const SpringDescription(
-                  mass: 2.2,
-                  stiffness: 150,
-                  damping: 16,
-                ),
-            controller: widget.controller,
-            updateFlag: _updatePhysics ? 0 : 1,
-            maxUnderScrollExtent: conf?.maxUnderScrollExtent ??
-                (isBouncingPhysics ? double.infinity : 0.0),
-            maxOverScrollExtent: conf?.maxOverScrollExtent ??
-                (isBouncingPhysics ? double.infinity : 60.0),
-            topHitBoundary: conf?.topHitBoundary ??
-                (isBouncingPhysics ? double.infinity : 0.0),
-            // need to fix default value by ios or android later
-            bottomHitBoundary: conf?.bottomHitBoundary ??
-                (isBouncingPhysics ? double.infinity : 0.0))
-        .applyTo(!_canDrag ? const NeverScrollableScrollPhysics() : physics);
+      dragSpeedRatio: conf?.dragSpeedRatio ?? 1,
+      springDescription: conf?.springDescription ??
+          const SpringDescription(
+            mass: 2.2,
+            stiffness: 150,
+            damping: 16,
+          ),
+      controller: widget.controller,
+      updateFlag: _updatePhysics ? 0 : 1,
+      maxOverScrollExtent: conf?.maxOverScrollExtent ??
+          (isBouncingPhysics ? double.infinity : 60.0),
+      topHitBoundary:
+          conf?.topHitBoundary ?? (isBouncingPhysics ? double.infinity : 0.0),
+    ).applyTo(!_canDrag ? const NeverScrollableScrollPhysics() : physics);
   }
 
-  // build the customScrollView
+  // 构建 customScrollView
   Widget? _buildBodyBySlivers(
       Widget? childView, List<Widget>? slivers, RefreshConfiguration? conf) {
     Widget? body;
@@ -291,9 +281,7 @@ class SmartRefresherState extends State<SmartRefresher> {
     }
 
     if (conf.topHitBoundary != _physics!.topHitBoundary ||
-        _physics!.bottomHitBoundary != conf.bottomHitBoundary ||
         conf.maxOverScrollExtent != _physics!.maxOverScrollExtent ||
-        _physics!.maxUnderScrollExtent != conf.maxUnderScrollExtent ||
         _physics!.dragSpeedRatio != conf.dragSpeedRatio) {
       return true;
     }
@@ -330,8 +318,8 @@ class SmartRefresherState extends State<SmartRefresher> {
   void initState() {
     if (widget.controller.initialRefresh) {
       WidgetsBinding.instance!.addPostFrameCallback((_) {
-        //  if mounted,it avoid one situation: when init done,then dispose the widget before build.
-        //  this   situation mostly TabBarView
+        // 如果已安装，则避免一种情况：初始化完成后，然后在构建之前处理小部件。
+        // 这种情况多为 TabBarView
         if (mounted) widget.controller.requestRefresh();
       });
     }
@@ -373,22 +361,19 @@ class SmartRefresherState extends State<SmartRefresher> {
   }
 }
 
-/// A controller controll header and footer state,
-/// it  can trigger  driving request Refresh ,set the initalRefresh,status if needed
-///
-/// See also:
-///
-/// * [SmartRefresher],a widget help you attach refresh and load more function easily
+/// 控制器控制页眉和页脚状态，
+/// 它可以触发驱动请求刷新，如果需要设置初始刷新，状态
+/// 也可以看看：
+/// * [SmartRefresher]，一个帮助您轻松附加刷新和加载更多功能的小部件
 class RefreshController {
   SmartRefresherState? _refresherState;
 
-  /// header status mode controll
+  /// 标头状态模式控制
   RefreshNotifier<RefreshStatus>? headerMode;
 
-  /// the scrollable inner's position
-  ///
-  /// notice that: position is null before build,
-  /// the value is get when the header or footer callback onPositionUpdated
+  /// 可滚动内部的位置
+  /// 请注意：在构建之前位置为空，
+  /// 该值是在页眉或页脚回调 onPositionUpdated 时获取的
   ScrollPosition? position;
 
   RefreshStatus? get headerStatus => headerMode?.value;
@@ -397,11 +382,9 @@ class RefreshController {
 
   final bool initialRefresh;
 
-  /// initialRefresh:When SmartRefresher is init,it will call requestRefresh at once
-  ///
-  /// initialRefreshStatus: headerMode default value
-  ///
-  /// initialLoadStatus: footerMode default value
+  /// initialRefresh：SmartRefresher 初始化时，会立即调用 requestRefresh
+  /// initialRefreshStatus：headerMode 默认值
+  /// initialLoadStatus：footerMode 默认值
   RefreshController({
     this.initialRefresh = false,
     RefreshStatus? initialRefreshStatus,
@@ -415,7 +398,7 @@ class RefreshController {
     _refresherState = state;
   }
 
-  /// callback when the indicator is builded,and catch the scrollable's inner position
+  /// 建立指标时回调，并捕获可滚动的内部位置
   void onPositionUpdated(ScrollPosition newPosition) {
     position?.isScrollingNotifier.removeListener(_listenScrollEnd);
     position = newPosition;
@@ -440,9 +423,9 @@ class RefreshController {
     return result;
   }
 
-  /// when bounce out of edge and stopped by overScroll or underScroll, it should be SpringBack to 0.0
-  /// but ScrollPhysics didn't provide one way to spring back when outOfEdge(stopped by applyBouncingCondition return != 0.0)
-  /// so for making it spring back, it should be trigger goBallistic make it spring back
+  /// 当跳出边缘并被 overScroll 或 underScroll 停止时，它应该是 SpringBack 到 0.0
+  /// 但是 ScrollPhysics 没有提供一种在 outOfEdge 时回弹的方法（由 applyBouncingCondition 停止返回！= 0.0）
+  /// 所以要让它回弹，应该触发 goBallistic 让它回弹
   void _listenScrollEnd() {
     if (position != null && position!.outOfRange) {
       position?.activity?.applyNewDimensions();
@@ -497,24 +480,22 @@ class RefreshController {
     return null;
   }
 
-  /// request complete,the header will enter complete state,
-  ///
-  /// resetFooterState : it will set the footer state from noData to idle
+  /// 请求完成，标头将进入完成状态
   void refreshCompleted({bool resetFooterState = false}) {
     headerMode?.value = RefreshStatus.completed;
   }
 
-  /// request failed,the header display failed state
+  /// 请求失败，头部显示失败状态
   void refreshFailed() {
     headerMode?.value = RefreshStatus.failed;
   }
 
-  /// not show success or failed, it will set header state to idle and spring back at once
+  /// 不显示成功或失败，它会将标头状态设置为空闲并立即弹回
   void refreshToIdle() {
     headerMode?.value = RefreshStatus.idle;
   }
 
-  /// for some special situation, you should call dispose() for safe,it may throw errors after parent widget dispose
+  /// 对于某些特殊情况，您应该调用 dispose() 以确保安全，它可能会在父窗口小部件 dispose 后抛出错误
   void dispose() {
     headerMode!.dispose();
     headerMode = null;
@@ -540,54 +521,44 @@ class RefreshConfiguration extends InheritedWidget {
   /// 刷新完成后用户是否可以拖动视口并回弹
   final bool enableScrollWhenRefreshCompleted;
 
-
-  /// overScroll distance of trigger refresh
+  /// 触发刷新的overScroll距离
   final double headerTriggerDistance;
 
-  /// the speed ratio when dragging overscroll ,compute=origin physics dragging speed *dragSpeedRatio
+  /// 拖动滚动时的速度比，compute=origin物理拖动速度*dragSpeedRatio
   final double dragSpeedRatio;
 
-  /// max overScroll distance when out of edge
+  /// 超出上边缘时的最大滚动距离
   final double? maxOverScrollExtent;
 
-  /// 	max underScroll distance when out of edge
-  final double? maxUnderScrollExtent;
-
-  /// The boundary is located at the top edge and stops when inertia rolls over the boundary distance
+  /// 边界位于顶部边缘，当惯性滚动超过边界距离时停止
   final double? topHitBoundary;
 
-  /// The boundary is located at the bottom edge and stops when inertia rolls under the boundary distance
-  final double? bottomHitBoundary;
-
-  /// toggle of  refresh vibrate
+  /// 刷新振动的切换
   final bool enableRefreshVibrate;
 
-  const RefreshConfiguration(
-      {Key? key,
-      required this.child,
-      this.headerBuilder,
-      this.dragSpeedRatio = 1.0,
-      this.springDescription = const SpringDescription(
-        mass: 2.2,
-        stiffness: 150,
-        damping: 16,
-      ),
-      this.enableScrollWhenRefreshCompleted = false,
-      this.skipCanRefresh = false,
-      this.maxOverScrollExtent,
-      this.maxUnderScrollExtent,
-      this.headerTriggerDistance = 80.0,
-      this.enableRefreshVibrate = false,
-      this.topHitBoundary,
-      this.bottomHitBoundary})
-      : assert(headerTriggerDistance > 0),
+  const RefreshConfiguration({
+    Key? key,
+    required this.child,
+    this.headerBuilder,
+    this.dragSpeedRatio = 1.0,
+    this.springDescription = const SpringDescription(
+      mass: 2.2,
+      stiffness: 150,
+      damping: 16,
+    ),
+    this.enableScrollWhenRefreshCompleted = false,
+    this.skipCanRefresh = false,
+    this.maxOverScrollExtent,
+    this.headerTriggerDistance = 80.0,
+    this.enableRefreshVibrate = false,
+    this.topHitBoundary,
+  })  : assert(headerTriggerDistance > 0),
         assert(dragSpeedRatio > 0),
         super(key: key, child: child);
 
-  /// Construct RefreshConfiguration to copy attributes from ancestor nodes
-  /// If the parameter is null, it will automatically help you to absorb the attributes of your ancestor Refresh Configuration, instead of having to copy them manually by yourself.
-  ///
-  /// it mostly use in some stiuation is different the other SmartRefresher in App
+  /// 构造 RefreshConfiguration 以从祖先节点复制属性
+  /// 如果该参数为空，它会自动帮你吸收你祖先刷新配置的属性，而不必自己手动复制它们。
+  /// 它主要在某些情况下使用，与 App 中的其他 SmartRefresher 不同
   RefreshConfiguration.copyAncestor({
     Key? key,
     required BuildContext context,
@@ -626,12 +597,8 @@ class RefreshConfiguration extends InheritedWidget {
             RefreshConfiguration.of(context)!.springDescription,
         maxOverScrollExtent = maxOverScrollExtent ??
             RefreshConfiguration.of(context)!.maxOverScrollExtent,
-        maxUnderScrollExtent = maxUnderScrollExtent ??
-            RefreshConfiguration.of(context)!.maxUnderScrollExtent,
         topHitBoundary =
             topHitBoundary ?? RefreshConfiguration.of(context)!.topHitBoundary,
-        bottomHitBoundary = bottomHitBoundary ??
-            RefreshConfiguration.of(context)!.bottomHitBoundary,
         skipCanRefresh =
             skipCanRefresh ?? RefreshConfiguration.of(context)!.skipCanRefresh,
         enableScrollWhenRefreshCompleted = enableScrollWhenRefreshCompleted ??
@@ -651,11 +618,9 @@ class RefreshConfiguration extends InheritedWidget {
         enableScrollWhenRefreshCompleted !=
             oldWidget.enableScrollWhenRefreshCompleted ||
         headerTriggerDistance != oldWidget.headerTriggerDistance ||
-        maxUnderScrollExtent != oldWidget.maxUnderScrollExtent ||
         oldWidget.maxOverScrollExtent != maxOverScrollExtent ||
         topHitBoundary != oldWidget.topHitBoundary ||
-        enableRefreshVibrate != oldWidget.enableRefreshVibrate ||
-        bottomHitBoundary != oldWidget.bottomHitBoundary;
+        enableRefreshVibrate != oldWidget.enableRefreshVibrate;
   }
 }
 

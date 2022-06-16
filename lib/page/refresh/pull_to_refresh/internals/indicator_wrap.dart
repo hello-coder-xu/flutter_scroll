@@ -1,11 +1,3 @@
-/*
-    Author: JPeng
-    Email: peng8350@gmail.com
-    createTime:2018-05-14 15:39
- */
-
-// ignore_for_file: INVALID_USE_OF_PROTECTED_MEMBER
-// ignore_for_file: INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../smart_refresher.dart';
@@ -19,16 +11,16 @@ typedef ModeChangeCallBack<T> = void Function(T? mode);
 
 /// 下拉刷新
 abstract class RefreshIndicator extends StatefulWidget {
-  /// refresh display style
+  /// 刷新显示样式
   final RefreshStyle? refreshStyle;
 
-  /// the visual extent indicator
+  /// 视觉范围指示器
   final double height;
 
-  //layout offset
+  ///布局偏移
   final double offset;
 
-  /// the stopped time when refresh complete or fail
+  /// 刷新完成或失败的停止时间
   final Duration completeDuration;
 
   const RefreshIndicator({
@@ -89,7 +81,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
         mode = RefreshStatus.idle;
       }
     }
-    //mostly for spring back
+    //主要用于回弹
     else if (activity is BallisticScrollActivity) {
       if (RefreshStatus.canRefresh == mode) {
         // refreshing
@@ -126,10 +118,10 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
         }
         update();
         /*
-          handle two Situation:
-          1.when user dragging to refreshing, then user scroll down not to see the indicator,then it will not spring back,
-          the _onOffsetChange didn't callback,it will keep failed or success state.
-          2. As FrontStyle,when user dragging in 0~100 in refreshing state,it should be reset after the state change
+          处理两种情况：
+           1.当用户拖动到刷新时，用户向下滚动看不到指示器，则不会弹回，
+           _onOffsetChange 没有回调，它将保持失败或成功状态。
+           2. 作为FrontStyle，当用户在刷新状态下拖动0~100时，需要在状态改变后重新设置
           */
         WidgetsBinding.instance!.addPostFrameCallback((_) {
           if (!mounted) {
@@ -155,13 +147,13 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
     onModeChange(mode);
   }
 
-  // the method can provide a callback to implements some animation
+  //该方法可以提供一个回调来实现一些动画
   @override
   Future<void> readyToRefresh() {
     return Future.value();
   }
 
-  // it mean the state will enter success or fail
+  // 这意味着状态将进入成功或失败
   @override
   Future<void> endRefresh() {
     return Future.delayed(widget.completeDuration);

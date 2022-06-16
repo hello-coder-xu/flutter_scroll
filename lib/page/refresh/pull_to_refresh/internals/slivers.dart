@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import '../smart_refresher.dart';
 
-///  Render header sliver widget
+/// 渲染标题条小部件
 class SliverRefresh extends SingleChildRenderObjectWidget {
   const SliverRefresh({
     Key? key,
@@ -15,19 +15,19 @@ class SliverRefresh extends SingleChildRenderObjectWidget {
   })  : assert(refreshIndicatorLayoutExtent >= 0.0),
         super(key: key, child: child);
 
-  /// The amount of space the indicator should occupy in the sliver in a
-  /// resting state when in the refreshing mode.
+  /// 指标应在条子中占据的空间量
+  /// 处于刷新模式时的静止状态。
   final double refreshIndicatorLayoutExtent;
 
-  /// _RenderSliverRefresh will paint the child in the available
-  /// space either way but this instructs the _RenderSliverRefresh
-  /// on whether to also occupy any layoutExtent space or not.
+  /// _RenderSliverRefresh 将在可用的
+  /// 无论哪种方式都有空间，但这会指示 _RenderSliverRefresh
+  /// 关于是否也占用任何 layoutExtent 空间。
   final bool floating;
 
-  /// header indicator display style
+  /// 标题指示器显示样式
   final RefreshStyle? refreshStyle;
 
-  /// headerOffset	Head indicator layout deviation Y coordinates, mostly for FrontStyle
+  /// headerOffset 头部指示器布局偏差 Y 坐标，多为 FrontStyle
   final double? paintOffsetY;
 
   @override
@@ -71,15 +71,15 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
   RefreshStyle? refreshStyle;
   late BuildContext context;
 
-  // The amount of layout space the indicator should occupy in the sliver in a
-  // resting state when in the refreshing mode.
+  // 指示器应在条子中占据的布局空间量
+  // 处于刷新模式时的静止状态。
   double get refreshIndicatorLayoutExtent => _refreshIndicatorExtent;
   double _refreshIndicatorExtent;
   double? paintOffsetY;
 
-  // need to trigger shouldAceppty user offset ,else it will not limit scroll when enter twolevel or exit
-  // also it will crash if you call applyNewDimession when the state change
-  // I don't know why flutter limit it, no choice
+  // 需要触发shouldAceppty用户偏移，否则进入二级或退出时不限制滚动
+  // 如果您在状态更改时调用 applyNewDimession，它也会崩溃
+  // 不知道为什么flutter会限制它，别无选择
   bool _updateFlag = false;
 
   set refreshIndicatorLayoutExtent(double value) {
@@ -89,9 +89,9 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
     markNeedsLayout();
   }
 
-  // The child box will be laid out and painted in the available space either
-  // way but this determines whether to also occupy any
-  // [SliverGeometry.layoutExtent] space or not.
+  // 子框将在可用空间中进行布局和绘制
+  // 方式，但这决定了是否也占用任何
+  // [SliverGeometry.layoutExtent] 空间与否。
   bool get hasLayoutExtent => _hasLayoutExtent;
   bool _hasLayoutExtent;
 
@@ -104,10 +104,10 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
     markNeedsLayout();
   }
 
-  // This keeps track of the previously applied scroll offsets to the scrollable
-  // so that when [refreshIndicatorLayoutExtent] or [hasLayoutExtent] changes,
-  // the appropriate delta can be applied to keep everything in the same place
-  // visually.
+  // 这将跟踪先前应用的滚动偏移量到可滚动
+  // 这样当 [refreshIndicatorLayoutExtent] 或 [hasLayoutExtent] 发生变化时，
+  // 可以应用适当的增量来将所有内容保持在同一个地方
+  // 视觉上。
   double layoutExtentOffsetCompensation = 0.0;
 
   @override
@@ -151,12 +151,12 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
       Scrollable.of(context)!.position.activity!.applyNewDimensions();
       _updateFlag = false;
     }
-    // The new layout extent this sliver should now have.
+    // 该条子现在应该具有的新布局范围。
     final double layoutExtent =
         (_hasLayoutExtent ? 1.0 : 0.0) * _refreshIndicatorExtent;
-    // If the new layoutExtent instructive changed, the SliverGeometry's
-    // layoutExtent will take that value (on the next performLayout run). Shift
-    // the scroll offset first so it doesn't make the scroll position suddenly jump.
+    // 如果新的 layoutExtent 指令改变了，SliverGeometry 的
+    // layoutExtent 将采用该值（在下一次 performLayout 运行时）。 转移
+    // 首先滚动偏移，因此它不会使滚动位置突然跳跃。
     if (layoutExtent != layoutExtentOffsetCompensation) {
       geometry = SliverGeometry(
         scrollOffsetCorrection: layoutExtent - layoutExtentOffsetCompensation,
@@ -238,7 +238,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
 
 
 class SliverRefreshBody extends SingleChildRenderObjectWidget {
-  /// Creates a sliver that contains a single box widget.
+  /// 创建一个包含单个框小部件的条子。
   const SliverRefreshBody({
     Key? key,
     Widget? child,
@@ -250,7 +250,7 @@ class SliverRefreshBody extends SingleChildRenderObjectWidget {
 }
 
 class RenderSliverRefreshBody extends RenderSliverSingleBoxAdapter {
-  /// Creates a [RenderSliver] that wraps a [RenderBox].
+  /// 创建一个包装 [RenderBox] 的 [RenderSliver]。
   RenderSliverRefreshBody({
     RenderBox? child,
   }) : super(child: child);
