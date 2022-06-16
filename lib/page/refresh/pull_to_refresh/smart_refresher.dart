@@ -48,18 +48,6 @@ enum RefreshStatus {
 
   /// the indicator refresh failed
   failed,
-
-  ///  Dragged far enough that the onTwoLevel callback will callback
-  canTwoLevel,
-
-  ///  indicator is opening twoLevel
-  twoLevelOpening,
-
-  /// indicator is in twoLevel
-  twoLeveling,
-
-  ///  indicator is closing twoLevel
-  twoLevelClosing
 }
 
 ///  footer state
@@ -146,9 +134,6 @@ class SmartRefresher extends StatefulWidget {
   // This bool will affect whether or not to have the function of drop-up load.
   final bool enablePullUp;
 
-  /// controll whether open the second floor function
-  final bool enableTwoLevel;
-
   /// This bool will affect whether or not to have the function of drop-down refresh.
   final bool enablePullDown;
 
@@ -215,7 +200,6 @@ class SmartRefresher extends StatefulWidget {
       this.footer,
       this.enablePullDown = true,
       this.enablePullUp = false,
-      this.enableTwoLevel = false,
       this.onRefresh,
       this.onLoading,
       this.onTwoLevel,
@@ -243,7 +227,6 @@ class SmartRefresher extends StatefulWidget {
     required this.builder,
     this.enablePullDown = true,
     this.enablePullUp = false,
-    this.enableTwoLevel = false,
     this.onRefresh,
     this.onLoading,
     this.onTwoLevel,
@@ -310,7 +293,7 @@ class SmartRefresherState extends State<SmartRefresher> {
         )
       ];
     }
-    if (widget.enablePullDown || widget.enableTwoLevel) {
+    if (widget.enablePullDown) {
       slivers?.insert(
           0,
           widget.header ??
@@ -576,10 +559,6 @@ class RefreshController {
 
   bool get isRefresh => headerMode?.value == RefreshStatus.refreshing;
 
-  bool get isTwoLevel =>
-      headerMode?.value == RefreshStatus.twoLeveling ||
-      headerMode?.value == RefreshStatus.twoLevelOpening ||
-      headerMode?.value == RefreshStatus.twoLevelClosing;
 
   bool get isLoading => footerMode?.value == LoadStatus.loading;
 
@@ -691,19 +670,6 @@ class RefreshController {
     return null;
   }
 
-  /// make the header enter refreshing state,and callback onRefresh
-  Future<void> requestTwoLevel({
-    Duration duration = const Duration(milliseconds: 300),
-    Curve curve = Curves.linear,
-  }) {
-    assert(position != null,
-        'Try not to call requestRefresh() before build,please call after the ui was rendered');
-    headerMode!.value = RefreshStatus.twoLevelOpening;
-    return Future.delayed(const Duration(milliseconds: 50)).then((_) async {
-      await position?.animateTo(position!.minScrollExtent,
-          duration: duration, curve: curve);
-    });
-  }
 
   /// make the footer enter loading state,and callback onLoading
   Future<void>? requestLoading({
@@ -759,21 +725,6 @@ class RefreshController {
     }
   }
 
-  /// end twoLeveling,will return back first floor
-  Future<void>? twoLevelComplete({
-    Duration duration = const Duration(milliseconds: 500),
-    Curve curve = Curves.linear,
-  }) {
-    headerMode?.value = RefreshStatus.twoLevelClosing;
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      position!
-          .animateTo(0.0, duration: duration, curve: curve)
-          .whenComplete(() {
-        headerMode!.value = RefreshStatus.idle;
-      });
-    });
-    return null;
-  }
 
   /// request failed,the header display failed state
   void refreshFailed() {

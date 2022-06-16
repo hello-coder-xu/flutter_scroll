@@ -36,7 +36,7 @@ class BezierHeader extends RefreshIndicator {
     this.onOffsetChange,
     this.onModeChange,
     this.readyRefresh,
-    this.enableChildOverflow: false,
+    this.enableChildOverflow = false,
     this.endRefresh,
     this.onResetValue,
     this.dismissType = BezierDismissType.rectSpread,

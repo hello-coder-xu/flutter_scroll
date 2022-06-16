@@ -50,9 +50,7 @@ class SliverRefresh extends SingleChildRenderObjectWidget {
       ..hasLayoutExtent = floating
       ..context = context
       ..refreshStyle = refreshStyle
-      ..updateFlag = mode == RefreshStatus.twoLevelOpening ||
-          mode == RefreshStatus.twoLeveling ||
-          mode == RefreshStatus.idle
+      ..updateFlag = mode == RefreshStatus.idle
       ..paintOffsetY = paintOffsetY;
   }
 }
@@ -280,8 +278,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    context.paintChild(
-        child!, Offset(offset.dx, offset.dy + paintOffsetY!));
+    context.paintChild(child!, Offset(offset.dx, offset.dy + paintOffsetY!));
   }
 
   @override

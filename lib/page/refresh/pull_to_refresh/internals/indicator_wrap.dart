@@ -133,14 +133,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
 
   @override
   double _calculateScrollOffset() {
-    return (floating
-            ? (mode == RefreshStatus.twoLeveling ||
-                    mode == RefreshStatus.twoLevelOpening ||
-                    mode == RefreshStatus.twoLevelClosing
-                ? refresherState!.viewportExtent
-                : widget.height)
-            : 0.0) -
-        (_position?.pixels as num);
+    return (floating ? widget.height : 0.0) - (_position?.pixels as num);
   }
 
   @override
@@ -153,17 +146,6 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
   // handle the  state change between canRefresh and idle canRefresh  before refreshing
   @override
   void _dispatchModeByOffset(double offset) {
-    if (mode == RefreshStatus.twoLeveling) {
-      if (_position!.pixels > configuration!.closeTwoLevelDistance &&
-          activity is BallisticScrollActivity) {
-        refresher!.controller.twoLevelComplete();
-        return;
-      }
-    }
-    if (RefreshStatus.twoLevelOpening == mode ||
-        mode == RefreshStatus.twoLevelClosing) {
-      return;
-    }
     if (floating) return;
     // no matter what activity is done, when offset ==0.0 and !floating,it should be set to idle for setting ifCanDrag
     if (offset == 0.0) {
@@ -196,12 +178,6 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
       } else if (refresher!.enablePullDown) {
         mode = RefreshStatus.idle;
       }
-      if (refresher!.enableTwoLevel &&
-          offset >= configuration!.twiceTriggerDistance) {
-        mode = RefreshStatus.canTwoLevel;
-      } else if (refresher!.enableTwoLevel && !refresher!.enablePullDown) {
-        mode = RefreshStatus.idle;
-      }
     }
     //mostly for spring back
     else if (activity is BallisticScrollActivity) {
@@ -213,14 +189,6 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
           if (!mounted) return;
           mode = RefreshStatus.refreshing;
         });
-      }
-      if (mode == RefreshStatus.canTwoLevel) {
-        // enter twoLevel
-        floating = true;
-        update();
-        if (!mounted) return;
-
-        mode = RefreshStatus.twoLevelOpening;
       }
     }
   }
@@ -280,28 +248,6 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
         HapticFeedback.vibrate();
       }
       if (refresher!.onRefresh != null) refresher!.onRefresh!();
-    } else if (mode == RefreshStatus.twoLevelOpening) {
-      floating = true;
-      refresherState!.setCanDrag(false);
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
-        if (!mounted) return;
-        activity!.resetActivity();
-        _position!
-            .animateTo(0.0,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.linear)
-            .whenComplete(() {
-          mode = RefreshStatus.twoLeveling;
-        });
-        if (refresher!.onTwoLevel != null) refresher!.onTwoLevel!(true);
-      });
-    } else if (mode == RefreshStatus.twoLevelClosing) {
-      floating = false;
-      refresherState!.setCanDrag(false);
-      update();
-      if (refresher!.onTwoLevel != null) refresher!.onTwoLevel!(false);
-    } else if (mode == RefreshStatus.twoLeveling) {
-      refresherState!.setCanDrag(configuration!.enableScrollWhenTwoLevel);
     }
     onModeChange(mode);
   }
@@ -328,21 +274,18 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
   @override
   Widget build(BuildContext context) {
     return SliverRefresh(
-        paintOffsetY: widget.offset,
-        child: RotatedBox(
-          child: buildContent(context, mode),
-          quarterTurns: needReverseAll() &&
-                  Scrollable.of(context)!.axisDirection == AxisDirection.up
-              ? 10
-              : 0,
-        ),
-        floating: floating,
-        refreshIndicatorLayoutExtent: mode == RefreshStatus.twoLeveling ||
-                mode == RefreshStatus.twoLevelOpening ||
-                mode == RefreshStatus.twoLevelClosing
-            ? refresherState!.viewportExtent
-            : widget.height,
-        refreshStyle: widget.refreshStyle);
+      paintOffsetY: widget.offset,
+      child: RotatedBox(
+        child: buildContent(context, mode),
+        quarterTurns: needReverseAll() &&
+                Scrollable.of(context)!.axisDirection == AxisDirection.up
+            ? 10
+            : 0,
+      ),
+      floating: floating,
+      refreshIndicatorLayoutExtent: widget.height,
+      refreshStyle: widget.refreshStyle,
+    );
   }
 }
 

@@ -43,7 +43,7 @@ class AppPages {
     ),
     GetPage(
       name: AppPaths.refresh,
-      page: () => RefreshPage(),
+      page: () => const RefreshPage(),
     ),
     GetPage(
       name: AppPaths.tabAndPageView,

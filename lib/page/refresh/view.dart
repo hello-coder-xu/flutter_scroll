@@ -1,30 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_scroll/common/logger/logger_utils.dart';
+import 'package:flutter_scroll/page/refresh/pull_to_refresh/smart_refresher.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'logic.dart';
 
-class RefreshPage extends StatelessWidget {
+class RefreshPage extends StatefulWidget {
+  const RefreshPage({Key? key}) : super(key: key);
+
+  @override
+  State<RefreshPage> createState() => _RefreshPageState();
+}
+
+class _RefreshPageState extends State<RefreshPage> {
   final logic = Get.put(RefreshLogic());
+
   final state = Get.find<RefreshLogic>().state;
 
-  RefreshPage({Key? key}) : super(key: key);
+  RefreshController controller = RefreshController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(toString()),
+        title: Text(widget.toString()),
         centerTitle: true,
       ),
-      body: buildBodyBySlivers(
-        context: context,
-        childView: ListView.builder(
-          itemBuilder: (context, index) => ListTile(
-            title: Text('$index'),
-          ),
-          itemCount: 100,
+      body: pullToRefreshView(),
+    );
+  }
+
+  ///模仿改造
+  Widget pullToRefreshView() {
+    return SmartRefresher(
+      controller: controller,
+      child: ListView.builder(
+        itemBuilder: (context, index) => ListTile(
+          title: Text('$index'),
         ),
+        itemCount: 100,
       ),
     );
   }
@@ -41,6 +55,18 @@ class RefreshPage extends StatelessWidget {
           fontSize: 16.sp,
           color: Colors.white,
         ),
+      ),
+    );
+  }
+
+  Widget customBodyView() {
+    return buildBodyBySlivers(
+      context: context,
+      childView: ListView.builder(
+        itemBuilder: (context, index) => ListTile(
+          title: Text('$index'),
+        ),
+        itemCount: 100,
       ),
     );
   }

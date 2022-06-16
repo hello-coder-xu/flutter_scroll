@@ -107,10 +107,7 @@ class _ClassicHeaderState extends RefreshIndicatorState<ClassicHeader> {
                         ? widget.refreshingText ?? strings.refreshingText!
                         : mode == RefreshStatus.idle
                             ? widget.idleText ?? strings.idleRefreshText!
-                            : mode == RefreshStatus.canTwoLevel
-                                ? widget.canTwoLevelText ??
-                                    strings.canTwoLevelText!
-                                : "",
+                            : "",
         style: widget.textStyle);
   }
 
@@ -123,22 +120,17 @@ class _ClassicHeaderState extends RefreshIndicatorState<ClassicHeader> {
                 ? widget.completeIcon
                 : mode == RefreshStatus.failed
                     ? widget.failedIcon
-                    : mode == RefreshStatus.canTwoLevel
-                        ? widget.canTwoLevelIcon
-                        : mode == RefreshStatus.canTwoLevel
-                            ? widget.canTwoLevelIcon
-                            : mode == RefreshStatus.refreshing
-                                ? widget.refreshingIcon ??
-                                    SizedBox(
-                                      width: 25.0,
-                                      height: 25.0,
-                                      child: defaultTargetPlatform ==
-                                              TargetPlatform.iOS
-                                          ? const CupertinoActivityIndicator()
-                                          : const CircularProgressIndicator(
-                                              strokeWidth: 2.0),
-                                    )
-                                : widget.twoLevelView;
+                    : mode == RefreshStatus.refreshing
+                        ? widget.refreshingIcon ??
+                            SizedBox(
+                              width: 25.0,
+                              height: 25.0,
+                              child: defaultTargetPlatform == TargetPlatform.iOS
+                                  ? const CupertinoActivityIndicator()
+                                  : const CircularProgressIndicator(
+                                      strokeWidth: 2.0),
+                            )
+                        : widget.twoLevelView;
     return icon ?? Container();
   }
 
