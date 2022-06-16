@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_scroll/common/logger/logger_utils.dart';
-import 'package:flutter_scroll/page/refresh/sliver_refresh.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'logic.dart';
@@ -61,7 +60,7 @@ class RefreshPage extends StatelessWidget {
     print('test slivers runType=${slivers.runtimeType}');
     slivers.insert(
         0,
-        SliverRefresh(
+        SliverToBoxAdapter(
           child: headerView(),
         ));
     return slivers;
