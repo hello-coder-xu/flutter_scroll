@@ -43,7 +43,16 @@ class _RefreshPageState extends State<RefreshPage> {
           height: 200.w,
           color: Colors.primaries[index],
           alignment: Alignment.center,
-          child: Text('$index'),
+          child: const Text(
+            '实现下拉刷新：'
+            '\n1，给列表新增刷新头部'
+            '\n2，给头部新增滚动监听，并根据滚动显示对应视图'
+            '\n3，添加自定义物理动画',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+            ),
+          ),
         ),
         itemCount: 3,
       ),

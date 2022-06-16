@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -155,6 +157,7 @@ class RefreshPhysics extends ScrollPhysics {
     final double bottomBoundary =
         position.maxScrollExtent + maxUnderScrollExtent! + bottomExtra;
 
+    // ignore: invalid_use_of_protected_member
     if (scrollPosition.activity is BallisticScrollActivity) {
       if (topHitBoundary != double.infinity) {
         if (value < -topHitBoundary! && -topHitBoundary! <= position.pixels) {
@@ -183,6 +186,7 @@ class RefreshPhysics extends ScrollPhysics {
     }
 
     // check user is dragging,it is import,some devices may not bounce with different frame and time,bouncing return the different velocity
+    // ignore: invalid_use_of_protected_member
     if (scrollPosition.activity is DragScrollActivity) {
       if (maxOverScrollExtent != double.infinity &&
           value < position.pixels &&

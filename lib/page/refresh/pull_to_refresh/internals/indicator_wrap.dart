@@ -47,6 +47,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
     return _position!.pixels < 0.0;
   }
 
+  ///计算越界距离
   @override
   double _calculateScrollOffset() {
     return (floating ? widget.height : 0.0) - (_position?.pixels as num);
@@ -59,19 +60,18 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
     onOffsetChange(overscrollPast);
   }
 
-  // handle the  state change between canRefresh and idle canRefresh  before refreshing
+  ///根据越界距离更新头部状态
   @override
   void _dispatchModeByOffset(double offset) {
     if (floating) return;
-    // no matter what activity is done, when offset ==0.0 and !floating,it should be set to idle for setting ifCanDrag
+    // no matter what activity is done, when offset ==0.0 and !floating,it should be set to idle for setting if CanDrag
     if (offset == 0.0) {
       mode = RefreshStatus.idle;
     }
 
-    // Sometimes different devices return velocity differently, so it's impossible to judge from velocity whether the user
-    // has invoked animateTo (0.0) or the user is dragging the view.Sometimes animateTo (0.0) does not return velocity = 0.0
-    // velocity < 0.0 may be spring up,>0.0 spring down
-    if ((configuration!.enableBallisticRefresh && activity!.velocity < 0.0) ||
+    // 有时不同的设备返回速度不同，因此无法从速度判断用户是否已调用 animateTo (0.0) 或用户正在拖动视图。
+    // 有时 animateTo (0.0) 不返回速度 = 0.0
+    if ((activity!.velocity < 0.0) ||
         activity is DragScrollActivity ||
         activity is DrivenScrollActivity) {
       if (offset >= configuration!.headerTriggerDistance) {
@@ -220,14 +220,17 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
     if (mounted) setState(() {});
   }
 
+  ///处理滚动时的偏移量
   void _handleOffsetChange() {
     if (!mounted) {
       return;
     }
+    //计算越界距离
     final double overscrollPast = _calculateScrollOffset();
     if (overscrollPast < 0.0) {
       return;
     }
+    //根据越界距离更新头部状态
     _dispatchModeByOffset(overscrollPast);
   }
 

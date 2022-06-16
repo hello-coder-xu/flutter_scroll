@@ -521,60 +521,28 @@ class RefreshController {
   }
 }
 
-/// Controls how SmartRefresher widgets behave in a subtree.the usage just like [ScrollConfiguration]
-///
-/// The refresh configuration determines smartRefresher some behaviours,global setting default indicator
-///
-/// see also:
-///
-/// * [SmartRefresher], a widget help attach the refresh and load more function
+///   控制 SmartRefresher 小部件在子树中的行为方式。用法类似于 [ScrollConfiguration]
+///   刷新配置决定了smartRefresher的一些行为，全局设置默认指标
+///   也可以看看：
+///   * [SmartRefresher]，一个帮助附加刷新和加载更多功能的小部件
 class RefreshConfiguration extends InheritedWidget {
   final Widget child;
 
-  /// global default header builder
+  /// 全局默认标头构建器
   final IndicatorBuilder? headerBuilder;
 
-  /// global default footer builder
-  final IndicatorBuilder? footerBuilder;
-
-  /// custom spring animate
+  /// 自定义弹簧动画
   final SpringDescription springDescription;
 
-  /// If need to refreshing now when reaching triggerDistance
+  /// 是否需要在到达 triggerDistance 时立即刷新
   final bool skipCanRefresh;
 
-  /// when listView data small(not enough one page) , it should be hide
-  final bool hideFooterWhenNotFull;
-
-  /// whether user can drag viewport when twoLeveling
-  final bool enableScrollWhenTwoLevel;
-
-  /// whether user can drag viewport when refresh complete and spring back
+  /// 刷新完成后用户是否可以拖动视口并回弹
   final bool enableScrollWhenRefreshCompleted;
 
-  /// whether trigger refresh by  BallisticScrollActivity
-  final bool enableBallisticRefresh;
-
-  /// whether trigger loading by  BallisticScrollActivity
-  final bool enableBallisticLoad;
-
-  /// whether footer can trigger load by reaching footerDistance when failed state
-  final bool enableLoadingWhenFailed;
-
-  /// whether footer can trigger load by reaching footerDistance when inNoMore state
-  final bool enableLoadingWhenNoData;
 
   /// overScroll distance of trigger refresh
   final double headerTriggerDistance;
-
-  ///	the overScroll distance of trigger twoLevel
-  final double twiceTriggerDistance;
-
-  /// Close the bottom crossing distance on the second floor, premise:enableScrollWhenTwoLevel is true
-  final double closeTwoLevelDistance;
-
-  /// the extentAfter distance of trigger loading
-  final double footerTriggerDistance;
 
   /// the speed ratio when dragging overscroll ,compute=origin physics dragging speed *dragSpeedRatio
   final double dragSpeedRatio;
@@ -594,41 +562,25 @@ class RefreshConfiguration extends InheritedWidget {
   /// toggle of  refresh vibrate
   final bool enableRefreshVibrate;
 
-  /// toggle of  loadmore vibrate
-  final bool enableLoadMoreVibrate;
-
   const RefreshConfiguration(
       {Key? key,
       required this.child,
       this.headerBuilder,
-      this.footerBuilder,
       this.dragSpeedRatio = 1.0,
-      this.enableScrollWhenTwoLevel = true,
-      this.enableLoadingWhenNoData = false,
-      this.enableBallisticRefresh = false,
       this.springDescription = const SpringDescription(
         mass: 2.2,
         stiffness: 150,
         damping: 16,
       ),
       this.enableScrollWhenRefreshCompleted = false,
-      this.enableLoadingWhenFailed = true,
-      this.twiceTriggerDistance = 150.0,
-      this.closeTwoLevelDistance = 80.0,
       this.skipCanRefresh = false,
       this.maxOverScrollExtent,
-      this.enableBallisticLoad = true,
       this.maxUnderScrollExtent,
       this.headerTriggerDistance = 80.0,
-      this.footerTriggerDistance = 15.0,
-      this.hideFooterWhenNotFull = false,
       this.enableRefreshVibrate = false,
-      this.enableLoadMoreVibrate = false,
       this.topHitBoundary,
       this.bottomHitBoundary})
       : assert(headerTriggerDistance > 0),
-        assert(twiceTriggerDistance > 0),
-        assert(closeTwoLevelDistance > 0),
         assert(dragSpeedRatio > 0),
         super(key: key, child: child);
 
@@ -666,20 +618,12 @@ class RefreshConfiguration extends InheritedWidget {
             "search RefreshConfiguration anscestor return null,please  Make sure that RefreshConfiguration is the ancestor of that element"),
         headerBuilder =
             headerBuilder ?? RefreshConfiguration.of(context)!.headerBuilder,
-        footerBuilder =
-            footerBuilder ?? RefreshConfiguration.of(context)!.footerBuilder,
         dragSpeedRatio =
             dragSpeedRatio ?? RefreshConfiguration.of(context)!.dragSpeedRatio,
-        twiceTriggerDistance = twiceTriggerDistance ??
-            RefreshConfiguration.of(context)!.twiceTriggerDistance,
         headerTriggerDistance = headerTriggerDistance ??
             RefreshConfiguration.of(context)!.headerTriggerDistance,
-        footerTriggerDistance = footerTriggerDistance ??
-            RefreshConfiguration.of(context)!.footerTriggerDistance,
         springDescription = springDescription ??
             RefreshConfiguration.of(context)!.springDescription,
-        hideFooterWhenNotFull = hideFooterWhenNotFull ??
-            RefreshConfiguration.of(context)!.hideFooterWhenNotFull,
         maxOverScrollExtent = maxOverScrollExtent ??
             RefreshConfiguration.of(context)!.maxOverScrollExtent,
         maxUnderScrollExtent = maxUnderScrollExtent ??
@@ -692,22 +636,8 @@ class RefreshConfiguration extends InheritedWidget {
             skipCanRefresh ?? RefreshConfiguration.of(context)!.skipCanRefresh,
         enableScrollWhenRefreshCompleted = enableScrollWhenRefreshCompleted ??
             RefreshConfiguration.of(context)!.enableScrollWhenRefreshCompleted,
-        enableScrollWhenTwoLevel = enableScrollWhenTwoLevel ??
-            RefreshConfiguration.of(context)!.enableScrollWhenTwoLevel,
-        enableBallisticRefresh = enableBallisticRefresh ??
-            RefreshConfiguration.of(context)!.enableBallisticRefresh,
-        enableBallisticLoad = enableBallisticLoad ??
-            RefreshConfiguration.of(context)!.enableBallisticLoad,
-        enableLoadingWhenNoData = enableLoadingWhenNoData ??
-            RefreshConfiguration.of(context)!.enableLoadingWhenNoData,
-        enableLoadingWhenFailed = enableLoadingWhenFailed ??
-            RefreshConfiguration.of(context)!.enableLoadingWhenFailed,
-        closeTwoLevelDistance = closeTwoLevelDistance ??
-            RefreshConfiguration.of(context)!.closeTwoLevelDistance,
         enableRefreshVibrate = enableRefreshVibrate ??
             RefreshConfiguration.of(context)!.enableRefreshVibrate,
-        enableLoadMoreVibrate = enableLoadMoreVibrate ??
-            RefreshConfiguration.of(context)!.enableLoadMoreVibrate,
         super(key: key, child: child);
 
   static RefreshConfiguration? of(BuildContext context) {
@@ -717,23 +647,14 @@ class RefreshConfiguration extends InheritedWidget {
   @override
   bool updateShouldNotify(RefreshConfiguration oldWidget) {
     return skipCanRefresh != oldWidget.skipCanRefresh ||
-        hideFooterWhenNotFull != oldWidget.hideFooterWhenNotFull ||
         dragSpeedRatio != oldWidget.dragSpeedRatio ||
         enableScrollWhenRefreshCompleted !=
             oldWidget.enableScrollWhenRefreshCompleted ||
-        enableBallisticRefresh != oldWidget.enableBallisticRefresh ||
-        enableScrollWhenTwoLevel != oldWidget.enableScrollWhenTwoLevel ||
-        closeTwoLevelDistance != oldWidget.closeTwoLevelDistance ||
-        footerTriggerDistance != oldWidget.footerTriggerDistance ||
         headerTriggerDistance != oldWidget.headerTriggerDistance ||
-        twiceTriggerDistance != oldWidget.twiceTriggerDistance ||
         maxUnderScrollExtent != oldWidget.maxUnderScrollExtent ||
         oldWidget.maxOverScrollExtent != maxOverScrollExtent ||
-        enableBallisticRefresh != oldWidget.enableBallisticRefresh ||
-        enableLoadingWhenFailed != oldWidget.enableLoadingWhenFailed ||
         topHitBoundary != oldWidget.topHitBoundary ||
         enableRefreshVibrate != oldWidget.enableRefreshVibrate ||
-        enableLoadMoreVibrate != oldWidget.enableLoadMoreVibrate ||
         bottomHitBoundary != oldWidget.bottomHitBoundary;
   }
 }
