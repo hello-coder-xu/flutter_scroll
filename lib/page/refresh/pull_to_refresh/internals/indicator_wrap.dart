@@ -6,10 +6,8 @@
 
 // ignore_for_file: INVALID_USE_OF_PROTECTED_MEMBER
 // ignore_for_file: INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'dart:math' as math;
 import '../smart_refresher.dart';
 import 'slivers.dart';
 
@@ -19,7 +17,7 @@ typedef OffsetCallBack = void Function(double offset);
 
 typedef ModeChangeCallBack<T> = void Function(T? mode);
 
-/// a widget  implements ios pull down refresh effect and Android material RefreshIndicator overScroll effect
+/// 下拉刷新
 abstract class RefreshIndicator extends StatefulWidget {
   /// refresh display style
   final RefreshStyle? refreshStyle;
@@ -42,88 +40,6 @@ abstract class RefreshIndicator extends StatefulWidget {
   }) : super(key: key);
 }
 
-/// a widget  implements  pull up load
-abstract class LoadIndicator extends StatefulWidget {
-  /// load more display style
-  final LoadStyle loadStyle;
-
-  /// the visual extent indicator
-  final double height;
-
-  /// callback when user click footer
-  final VoidCallback? onClick;
-
-  const LoadIndicator({
-    Key? key,
-    this.onClick,
-    this.loadStyle = LoadStyle.showAlways,
-    this.height = 60.0,
-  }) : super(key: key);
-}
-
-/// Internal Implementation of Head Indicator
-///
-/// you can extends RefreshIndicatorState for custom header,if you want to active complex animation effect
-///
-/// here is the most simple example
-///
-/// ```dart
-///
-/// class RunningHeaderState extends RefreshIndicatorState<RunningHeader>
-///    with TickerProviderStateMixin {
-///  AnimationController _scaleAnimation;
-///  AnimationController _offsetController;
-///  Tween<Offset> offsetTween;
-///
-///  @override
-///  void initState() {
-///    _scaleAnimation = AnimationController(vsync: this);
-///    _offsetController = AnimationController(
-///        vsync: this, duration: Duration(milliseconds: 1000));
-///    offsetTween = Tween(end: Offset(0.6, 0.0), begin: Offset(0.0, 0.0));
-///    super.initState();
-///  }
-///
-///  @override
-///  void onOffsetChange(double offset) {
-///    if (!floating) {
-///      _scaleAnimation.value = offset / 80.0;
-///    }
-///    super.onOffsetChange(offset);
-///  }
-///
-///  @override
-///  void resetValue() {
-///    _scaleAnimation.value = 0.0;
-///    _offsetController.value = 0.0;
-///  }
-///
-///  @override
-///  void dispose() {
-///    _scaleAnimation.dispose();
-///    _offsetController.dispose();
-///    super.dispose();
-///  }
-///
-///  @override
-///  Future<void> endRefresh() {
-///    return _offsetController.animateTo(1.0).whenComplete(() {});
-///  }
-///
-///  @override
-/// Widget buildContent(BuildContext context, RefreshStatus mode) {
-///    return SlideTransition(
-///      child: ScaleTransition(
-///        child: (mode != RefreshStatus.idle || mode != RefreshStatus.canRefresh)
-///            ? Image.asset("images/custom_2.gif")
-///            : Image.asset("images/custom_1.jpg"),
-///        scale: _scaleAnimation,
-///      ),
-///      position: offsetTween.animate(_offsetController),
-///    );
-///  }
-/// }
-/// ```
 abstract class RefreshIndicatorState<T extends RefreshIndicator>
     extends State<T>
     with IndicatorStateMixin<T, RefreshStatus>, RefreshProcessor {
@@ -152,19 +68,13 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
       mode = RefreshStatus.idle;
     }
 
-    // If FrontStyle overScroll,it shouldn't disable gesture in scrollable
-    if (_position!.extentBefore == 0.0 &&
-        widget.refreshStyle == RefreshStyle.front) {
-      _position!.context.setIgnorePointer(false);
-    }
     // Sometimes different devices return velocity differently, so it's impossible to judge from velocity whether the user
     // has invoked animateTo (0.0) or the user is dragging the view.Sometimes animateTo (0.0) does not return velocity = 0.0
     // velocity < 0.0 may be spring up,>0.0 spring down
     if ((configuration!.enableBallisticRefresh && activity!.velocity < 0.0) ||
         activity is DragScrollActivity ||
         activity is DrivenScrollActivity) {
-      if (refresher!.enablePullDown &&
-          offset >= configuration!.headerTriggerDistance) {
+      if (offset >= configuration!.headerTriggerDistance) {
         if (!configuration!.skipCanRefresh) {
           mode = RefreshStatus.canRefresh;
         } else {
@@ -175,7 +85,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
             mode = RefreshStatus.refreshing;
           });
         }
-      } else if (refresher!.enablePullDown) {
+      } else {
         mode = RefreshStatus.idle;
       }
     }
@@ -225,17 +135,10 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
           if (!mounted) {
             return;
           }
-          if (widget.refreshStyle == RefreshStyle.front) {
-            if (_inVisual()) {
-              _position!.jumpTo(0.0);
-            }
+          if (!_inVisual()) {
             mode = RefreshStatus.idle;
           } else {
-            if (!_inVisual()) {
-              mode = RefreshStatus.idle;
-            } else {
-              activity!.delegate.goBallistic(0.0);
-            }
+            activity!.delegate.goBallistic(0.0);
           }
         });
       });
@@ -289,230 +192,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
   }
 }
 
-abstract class LoadIndicatorState<T extends LoadIndicator> extends State<T>
-    with IndicatorStateMixin<T, LoadStatus>, LoadingProcessor {
-  // use to update between one page and above one page
-  bool _isHide = false;
-  bool _enableLoading = false;
-  LoadStatus? _lastMode = LoadStatus.idle;
-
-  @override
-  double _calculateScrollOffset() {
-    final double overScrollPastEnd =
-        math.max(_position!.pixels - _position!.maxScrollExtent, 0.0);
-    return overScrollPastEnd;
-  }
-
-  void enterLoading() {
-    setState(() {
-      floating = true;
-    });
-    _enableLoading = false;
-    readyToLoad().then((_) {
-      if (!mounted) {
-        return;
-      }
-      mode = LoadStatus.loading;
-    });
-  }
-
-  @override
-  Future endLoading() {
-    return Future.delayed(const Duration(milliseconds: 0));
-  }
-
-  void finishLoading() {
-    if (!floating) {
-      return;
-    }
-    endLoading().then((_) {
-      if (!mounted) {
-        return;
-      }
-
-      // this line for patch bug temporary:indicator disappears fastly when load more complete
-      if (mounted) Scrollable.of(context)!.position.correctBy(0.00001);
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
-        if (mounted && _position?.outOfRange == true) {
-          activity!.delegate.goBallistic(0);
-        }
-      });
-      setState(() {
-        floating = false;
-      });
-    });
-  }
-
-  bool _checkIfCanLoading() {
-    if (_position!.maxScrollExtent - _position!.pixels <=
-            configuration!.footerTriggerDistance &&
-        _position!.extentBefore > 2.0 &&
-        _enableLoading) {
-      if (!configuration!.enableLoadingWhenFailed &&
-          mode == LoadStatus.failed) {
-        return false;
-      }
-      if (!configuration!.enableLoadingWhenNoData &&
-          mode == LoadStatus.noMore) {
-        return false;
-      }
-      if (mode != LoadStatus.canLoading &&
-          _position!.userScrollDirection == ScrollDirection.forward) {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  void _handleModeChange() {
-    if (!mounted || _isHide) {
-      return;
-    }
-
-    update();
-    if (mode == LoadStatus.idle ||
-        mode == LoadStatus.failed ||
-        mode == LoadStatus.noMore) {
-      // #292,#265,#208
-      // stop the slow bouncing when load more too fast
-      if (_position!.activity!.velocity < 0 &&
-          _lastMode == LoadStatus.loading &&
-          !_position!.outOfRange &&
-          _position is ScrollActivityDelegate) {
-        _position!.beginActivity(
-            IdleScrollActivity(_position as ScrollActivityDelegate));
-      }
-
-      finishLoading();
-    }
-    if (mode == LoadStatus.loading) {
-      if (!floating) {
-        enterLoading();
-      }
-      if (configuration!.enableLoadMoreVibrate) {
-        HapticFeedback.vibrate();
-      }
-      if (refresher!.onLoading != null) {
-        refresher!.onLoading!();
-      }
-      if (widget.loadStyle == LoadStyle.showWhenLoading) {
-        floating = true;
-      }
-    } else {
-      if (activity is! DragScrollActivity) _enableLoading = false;
-    }
-    _lastMode = mode;
-    onModeChange(mode);
-  }
-
-  @override
-  void _dispatchModeByOffset(double offset) {
-    if (!mounted || _isHide || LoadStatus.loading == mode || floating) {
-      return;
-    }
-    if (activity is DragScrollActivity) {
-      if (_checkIfCanLoading()) {
-        mode = LoadStatus.canLoading;
-      } else {
-        mode = _lastMode;
-      }
-    }
-    if (activity is BallisticScrollActivity) {
-      if (configuration!.enableBallisticLoad) {
-        if (_checkIfCanLoading()) enterLoading();
-      } else if (mode == LoadStatus.canLoading) {
-        enterLoading();
-      }
-    }
-  }
-
-  @override
-  void _handleOffsetChange() {
-    if (_isHide) {
-      return;
-    }
-    super._handleOffsetChange();
-    final double overscrollPast = _calculateScrollOffset();
-    onOffsetChange(overscrollPast);
-  }
-
-  void _listenScrollEnd() {
-    if (!_position!.isScrollingNotifier.value) {
-      // when user release gesture from screen
-      if (_isHide || mode == LoadStatus.loading || mode == LoadStatus.noMore) {
-        return;
-      }
-
-      if (_checkIfCanLoading()) {
-        if (activity is IdleScrollActivity) {
-          if ((configuration!.enableBallisticLoad) ||
-              ((!configuration!.enableBallisticLoad) &&
-                  mode == LoadStatus.canLoading)) enterLoading();
-        }
-      }
-    } else {
-      if (activity is DragScrollActivity || activity is DrivenScrollActivity) {
-        _enableLoading = true;
-      }
-    }
-  }
-
-  @override
-  void _onPositionUpdated(ScrollPosition newPosition) {
-    _position?.isScrollingNotifier.removeListener(_listenScrollEnd);
-    newPosition.isScrollingNotifier.addListener(_listenScrollEnd);
-    super._onPositionUpdated(newPosition);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _lastMode = mode;
-  }
-
-  @override
-  void dispose() {
-    _position?.isScrollingNotifier.removeListener(_listenScrollEnd);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverLoading(
-        hideWhenNotFull: configuration!.hideFooterWhenNotFull,
-        floating: widget.loadStyle == LoadStyle.showAlways
-            ? true
-            : widget.loadStyle == LoadStyle.hideAlways
-                ? false
-                : floating,
-        shouldFollowContent:
-            configuration!.shouldFooterFollowWhenNotFull != null
-                ? configuration!.shouldFooterFollowWhenNotFull!(mode)
-                : mode == LoadStatus.noMore,
-        layoutExtent: widget.height,
-        mode: mode,
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints cons) {
-            _isHide = cons.biggest.height == 0.0;
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (widget.onClick != null) {
-                  widget.onClick!();
-                }
-              },
-              child: buildContent(context, mode),
-            );
-          },
-        ));
-  }
-}
-
-/// mixin in IndicatorState,it will get position and remove when dispose,init mode state
-///
-/// help to finish the work that the header indicator and footer indicator need to do
+/// 帮助完成页眉指示器和页脚指示器需要做的工作
 mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
   SmartRefresher? refresher;
 
@@ -533,8 +213,6 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
 
   ScrollActivity? get activity => _position!.activity;
 
-  // it doesn't support get the ScrollController as the listener, because it will cause "multiple scrollview use one ScrollController"
-  // error,only replace the ScrollPosition to listen the offset
   ScrollPosition? _position;
 
   // update ui
@@ -564,9 +242,8 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
     configuration = RefreshConfiguration.of(context);
     refresher = SmartRefresher.of(context);
     refresherState = SmartRefresher.ofState(context);
-    RefreshNotifier<V>? newMode = V == RefreshStatus
-        ? refresher!.controller.headerMode as RefreshNotifier<V>?
-        : refresher!.controller.footerMode as RefreshNotifier<V>?;
+    RefreshNotifier<V>? newMode =
+        refresher!.controller.headerMode as RefreshNotifier<V>?;
     final ScrollPosition newPosition = Scrollable.of(context)!.position;
     if (newMode != _mode) {
       _mode?.removeListener(_handleModeChange);
@@ -592,7 +269,6 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
 
   @override
   void dispose() {
-    //1.3.7: here need to careful after add asSliver builder
     disposeListener();
     super.dispose();
   }
@@ -605,8 +281,6 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
 
   @override
   void didUpdateWidget(T oldWidget) {
-    // needn't to update _headerMode,because it's state will never change
-    // 1.3.7: here need to careful after add asSliver builder
     _updateListener();
     super.didUpdateWidget(oldWidget);
   }
@@ -624,44 +298,24 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
   Widget buildContent(BuildContext context, V mode);
 }
 
-/// head Indicator exposure interface
+/// 暴露给头部视图接口
 abstract class RefreshProcessor {
-  /// out of edge offset callback
+  /// 越界回调
   void onOffsetChange(double offset) {}
 
-  /// mode change callback
+  /// 模式变更回调
   void onModeChange(RefreshStatus? mode) {}
 
-  /// when indicator is ready into refresh,it will call back and waiting for this function finish,then callback onRefresh
+  /// 当指标准备好刷新时，它会回调并等待该函数完成，然后回调onRefresh
   Future readyToRefresh() {
     return Future.value();
   }
 
-  // when indicator is ready to dismiss layout ,it will callback and then spring back after finish
+  /// 当指示器准备好关闭布局时，它会回调，然后在完成后弹回
   Future endRefresh() {
     return Future.value();
   }
 
-  // when indicator has been spring back,it  need to reset value
-  void resetValue() {}
-}
-
-/// footer Indicator exposure interface
-abstract class LoadingProcessor {
-  void onOffsetChange(double offset) {}
-
-  void onModeChange(LoadStatus? mode) {}
-
-  /// when indicator is ready into refresh,it will call back and waiting for this function finish,then callback onRefresh
-  Future readyToLoad() {
-    return Future.value();
-  }
-
-  // when indicator is ready to dismiss layout ,it will callback and then spring back after finish
-  Future endLoading() {
-    return Future.value();
-  }
-
-  // when indicator has been spring back,it  need to reset value
+  /// 当指示器已回弹时，需要重新设置值
   void resetValue() {}
 }

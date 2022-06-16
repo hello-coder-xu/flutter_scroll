@@ -1,5 +1,3 @@
-// ignore_for_file: INVALID_USE_OF_PROTECTED_MEMBER
-// ignore_for_file: INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -7,22 +5,12 @@ import 'package:flutter_scroll/page/refresh/pull_to_refresh/internals/slivers.da
 import 'package:flutter_scroll/page/refresh/pull_to_refresh/smart_refresher.dart';
 import 'dart:math' as math;
 
-/// a scrollPhysics for config refresh scroll effect,enable viewport out of edge whatever physics it is
-/// in [ClampingScrollPhysics], it doesn't allow to flip out of edge,but in RefreshPhysics,it will allow to do that,
-/// by parent physics passing,it also can attach the different of iOS and Android different scroll effect
-/// it also handles interception scrolling when refreshed, or when the second floor is open and closed.
-/// with [SpringDescription] passing,you can custom spring back animate,the more paramter can be setting in [RefreshConfiguration]
-///
-/// see also:
-///
-/// * [RefreshConfiguration], a configuration for Controlling how SmartRefresher widgets behave in a subtree
 // ignore: MUST_BE_IMMUTABLE
 class RefreshPhysics extends ScrollPhysics {
   final double? maxOverScrollExtent, maxUnderScrollExtent;
   final double? topHitBoundary, bottomHitBoundary;
   final SpringDescription? springDescription;
   final double? dragSpeedRatio;
-  final bool? enableScrollWhenTwoLevel, enableScrollWhenRefreshCompleted;
   final RefreshController? controller;
   final int? updateFlag;
 
@@ -40,25 +28,22 @@ class RefreshPhysics extends ScrollPhysics {
       this.dragSpeedRatio,
       this.topHitBoundary,
       this.bottomHitBoundary,
-      this.enableScrollWhenRefreshCompleted,
-      this.enableScrollWhenTwoLevel,
       this.maxOverScrollExtent})
       : super(parent: parent);
 
   @override
   RefreshPhysics applyTo(ScrollPhysics? ancestor) {
     return RefreshPhysics(
-        parent: buildParent(ancestor),
-        updateFlag: updateFlag,
-        springDescription: springDescription,
-        dragSpeedRatio: dragSpeedRatio,
-        enableScrollWhenTwoLevel: enableScrollWhenTwoLevel,
-        topHitBoundary: topHitBoundary,
-        bottomHitBoundary: bottomHitBoundary,
-        controller: controller,
-        enableScrollWhenRefreshCompleted: enableScrollWhenRefreshCompleted,
-        maxUnderScrollExtent: maxUnderScrollExtent,
-        maxOverScrollExtent: maxOverScrollExtent);
+      parent: buildParent(ancestor),
+      updateFlag: updateFlag,
+      springDescription: springDescription,
+      dragSpeedRatio: dragSpeedRatio,
+      topHitBoundary: topHitBoundary,
+      bottomHitBoundary: bottomHitBoundary,
+      controller: controller,
+      maxUnderScrollExtent: maxUnderScrollExtent,
+      maxOverScrollExtent: maxOverScrollExtent,
+    );
   }
 
   RenderViewport? findViewport(BuildContext? context) {
@@ -103,8 +88,7 @@ class RefreshPhysics extends ScrollPhysics {
   double applyPhysicsToUserOffset(ScrollMetrics position, double offset) {
     viewportRender ??=
         findViewport(controller!.position?.context.storageContext);
-    if ((offset > 0.0 && viewportRender?.firstChild is! RenderSliverRefresh) ||
-        (offset < 0 && viewportRender?.lastChild is! RenderSliverLoading)) {
+    if (offset > 0.0 && viewportRender?.firstChild is! RenderSliverRefresh) {
       return parent!.applyPhysicsToUserOffset(position, offset);
     }
     if (position.outOfRange) {
@@ -151,15 +135,10 @@ class RefreshPhysics extends ScrollPhysics {
     final ScrollPosition scrollPosition = position as ScrollPosition;
     viewportRender ??=
         findViewport(controller!.position?.context.storageContext);
-    bool notFull = position.minScrollExtent == position.maxScrollExtent;
     final bool enablePullDown = viewportRender == null
         ? false
         : viewportRender!.firstChild is RenderSliverRefresh;
-    final bool enablePullUp = viewportRender == null
-        ? false
-        : viewportRender!.lastChild is RenderSliverLoading;
-    if ((position.pixels - value > 0.0 && !enablePullDown) ||
-        (position.pixels - value < 0 && !enablePullUp)) {
+    if (position.pixels - value > 0.0 && !enablePullDown) {
       return parent!.applyBoundaryConditions(position, value);
     }
     double topExtra = 0.0;
@@ -171,27 +150,10 @@ class RefreshPhysics extends ScrollPhysics {
           ? 0.0
           : sliverHeader.refreshIndicatorLayoutExtent;
     }
-    if (enablePullUp) {
-      final RenderSliverLoading? sliverFooter =
-          viewportRender!.lastChild as RenderSliverLoading?;
-      bottomExtra = (!notFull && sliverFooter!.geometry!.scrollExtent != 0) ||
-              (notFull &&
-                  controller!.footerStatus == LoadStatus.noMore &&
-                  !RefreshConfiguration.of(
-                          controller!.position!.context.storageContext)!
-                      .enableLoadingWhenNoData) ||
-              (notFull &&
-                  (RefreshConfiguration.of(
-                              controller!.position!.context.storageContext)
-                          ?.hideFooterWhenNotFull ??
-                      false))
-          ? 0.0
-          : sliverFooter!.layoutExtent;
-    }
     final double topBoundary =
         position.minScrollExtent - maxOverScrollExtent! - topExtra;
     final double bottomBoundary =
-        position.maxScrollExtent + maxUnderScrollExtent! + bottomExtra!;
+        position.maxScrollExtent + maxUnderScrollExtent! + bottomExtra;
 
     if (scrollPosition.activity is BallisticScrollActivity) {
       if (topHitBoundary != double.infinity) {
@@ -245,11 +207,7 @@ class RefreshPhysics extends ScrollPhysics {
     final bool enablePullDown = viewportRender == null
         ? false
         : viewportRender!.firstChild is RenderSliverRefresh;
-    final bool enablePullUp = viewportRender == null
-        ? false
-        : viewportRender!.lastChild is RenderSliverLoading;
-    if ((velocity < 0.0 && !enablePullDown) ||
-        (velocity > 0 && !enablePullUp)) {
+    if (velocity < 0.0 && !enablePullDown) {
       return parent!.createBallisticSimulation(position, velocity);
     }
     return super.createBallisticSimulation(position, velocity);

@@ -34,11 +34,18 @@ class _RefreshPageState extends State<RefreshPage> {
   Widget pullToRefreshView() {
     return SmartRefresher(
       controller: controller,
+      scrollDirection: Axis.horizontal,
       child: ListView.builder(
-        itemBuilder: (context, index) => ListTile(
-          title: Text('$index'),
+        scrollDirection: Axis.horizontal,
+        physics: const PageScrollPhysics(),
+        itemBuilder: (context, index) => Container(
+          width: 1.sw,
+          height: 200.w,
+          color: Colors.primaries[index],
+          alignment: Alignment.center,
+          child: Text('$index'),
         ),
-        itemCount: 100,
+        itemCount: 3,
       ),
     );
   }

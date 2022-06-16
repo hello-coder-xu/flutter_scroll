@@ -112,26 +112,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
 
   @override
   double get centerOffsetAdjustment {
-    if (refreshStyle == RefreshStyle.front) {
-      final RenderViewportBase renderViewport =
-          parent as RenderViewportBase<ContainerParentDataMixin<RenderSliver>>;
-      return math.max(0.0, -renderViewport.offset.pixels);
-    }
     return 0.0;
-  }
-
-  @override
-  void layout(Constraints constraints, {bool parentUsesSize = false}) {
-    if (refreshStyle == RefreshStyle.front) {
-      final RenderViewportBase renderViewport =
-          parent as RenderViewportBase<ContainerParentDataMixin<RenderSliver>>;
-      super.layout(
-          (constraints as SliverConstraints)
-              .copyWith(overlap: math.min(0.0, renderViewport.offset.pixels)),
-          parentUsesSize: true);
-    } else {
-      super.layout(constraints, parentUsesSize: parentUsesSize);
-    }
   }
 
   set updateFlag(u) {
@@ -176,31 +157,21 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
     // If the new layoutExtent instructive changed, the SliverGeometry's
     // layoutExtent will take that value (on the next performLayout run). Shift
     // the scroll offset first so it doesn't make the scroll position suddenly jump.
-    if (refreshStyle != RefreshStyle.front) {
-      if (layoutExtent != layoutExtentOffsetCompensation) {
-        geometry = SliverGeometry(
-          scrollOffsetCorrection: layoutExtent - layoutExtentOffsetCompensation,
-        );
+    if (layoutExtent != layoutExtentOffsetCompensation) {
+      geometry = SliverGeometry(
+        scrollOffsetCorrection: layoutExtent - layoutExtentOffsetCompensation,
+      );
 
-        layoutExtentOffsetCompensation = layoutExtent;
-        return;
-      }
+      layoutExtentOffsetCompensation = layoutExtent;
+      return;
     }
     bool active = constraints.overlap < 0.0 || layoutExtent > 0.0;
-    final double overscrolledExtent =
+    final double overScrolledExtent =
         -(parent as RenderViewportBase).offset.pixels;
-    if (refreshStyle == RefreshStyle.behind) {
-      child!.layout(
-        constraints.asBoxConstraints(
-            maxExtent: math.max(0, overscrolledExtent + layoutExtent)),
-        parentUsesSize: true,
-      );
-    } else {
-      child!.layout(
-        constraints.asBoxConstraints(),
-        parentUsesSize: true,
-      );
-    }
+    child!.layout(
+      constraints.asBoxConstraints(),
+      parentUsesSize: true,
+    );
     final double boxExtent = (constraints.axisDirection == AxisDirection.up ||
             constraints.axisDirection == AxisDirection.down)
         ? child!.size.height
@@ -226,46 +197,26 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
             paintOrigin: -boxExtent - constraints.scrollOffset + layoutExtent,
             paintExtent: needPaintExtent,
             hitTestExtent: needPaintExtent,
-            hasVisualOverflow: overscrolledExtent < boxExtent,
+            hasVisualOverflow: overScrolledExtent < boxExtent,
             maxPaintExtent: needPaintExtent,
             layoutExtent: math.min(needPaintExtent,
                 math.max(layoutExtent - constraints.scrollOffset, 0.0)),
           );
 
-          break;
-        case RefreshStyle.behind:
-          geometry = SliverGeometry(
-            scrollExtent: layoutExtent,
-            paintOrigin: -overscrolledExtent - constraints.scrollOffset,
-            paintExtent: needPaintExtent,
-            maxPaintExtent: needPaintExtent,
-            layoutExtent:
-                math.max(layoutExtent - constraints.scrollOffset, 0.0),
-          );
           break;
         case RefreshStyle.unfollow:
           geometry = SliverGeometry(
             scrollExtent: layoutExtent,
             paintOrigin: math.min(
-                -overscrolledExtent - constraints.scrollOffset,
+                -overScrolledExtent - constraints.scrollOffset,
                 -boxExtent - constraints.scrollOffset + layoutExtent),
             paintExtent: needPaintExtent,
-            hasVisualOverflow: overscrolledExtent < boxExtent,
+            hasVisualOverflow: overScrolledExtent < boxExtent,
             maxPaintExtent: needPaintExtent,
             layoutExtent: math.min(needPaintExtent,
                 math.max(layoutExtent - constraints.scrollOffset, 0.0)),
           );
 
-          break;
-        case RefreshStyle.front:
-          geometry = SliverGeometry(
-            paintOrigin: constraints.axisDirection == AxisDirection.up ||
-                    constraints.crossAxisDirection == AxisDirection.left
-                ? boxExtent
-                : 0.0,
-            visible: true,
-            hasVisualOverflow: true,
-          );
           break;
         case null:
           break;
@@ -285,208 +236,6 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
   void applyPaintTransform(RenderObject child, Matrix4 transform) {}
 }
 
-/// Render footer sliver widget
-class SliverLoading extends SingleChildRenderObjectWidget {
-  /// when not full one page,whether it should be hide and disable loading
-  final bool? hideWhenNotFull;
-  final bool? floating;
-
-  /// load state
-  final LoadStatus? mode;
-  final double? layoutExtent;
-
-  /// when not full one page,whether it should follow content
-  final bool? shouldFollowContent;
-
-  const SliverLoading({
-    Key? key,
-    this.mode,
-    this.floating,
-    this.shouldFollowContent,
-    this.layoutExtent,
-    this.hideWhenNotFull,
-    Widget? child,
-  }) : super(key: key, child: child);
-
-  @override
-  RenderSliverLoading createRenderObject(BuildContext context) {
-    return RenderSliverLoading(
-        hideWhenNotFull: hideWhenNotFull,
-        mode: mode,
-        hasLayoutExtent: floating,
-        shouldFollowContent: shouldFollowContent,
-        layoutExtent: layoutExtent);
-  }
-
-  @override
-  void updateRenderObject(
-      BuildContext context, covariant RenderSliverLoading renderObject) {
-    renderObject
-      ..mode = mode
-      ..hasLayoutExtent = floating!
-      ..layoutExtent = layoutExtent
-      ..shouldFollowContent = shouldFollowContent
-      ..hideWhenNotFull = hideWhenNotFull;
-  }
-}
-
-class RenderSliverLoading extends RenderSliverSingleBoxAdapter {
-  RenderSliverLoading({
-    RenderBox? child,
-    this.mode,
-    double? layoutExtent,
-    bool? hasLayoutExtent,
-    this.shouldFollowContent,
-    this.hideWhenNotFull,
-  }) {
-    _hasLayoutExtent = hasLayoutExtent;
-    this.layoutExtent = layoutExtent;
-    this.child = child;
-  }
-
-  bool? shouldFollowContent;
-  bool? hideWhenNotFull;
-
-  LoadStatus? mode;
-
-  double? _layoutExtent;
-
-  set layoutExtent(extent) {
-    if (extent == _layoutExtent) return;
-    _layoutExtent = extent;
-    markNeedsLayout();
-  }
-
-  get layoutExtent => _layoutExtent;
-
-  bool get hasLayoutExtent => _hasLayoutExtent!;
-  bool? _hasLayoutExtent;
-
-  set hasLayoutExtent(bool value) {
-    if (value == _hasLayoutExtent) return;
-    _hasLayoutExtent = value;
-    markNeedsLayout();
-  }
-
-  bool _computeIfFull(SliverConstraints cons) {
-    final RenderViewport viewport = parent as RenderViewport;
-    RenderSliver? sliverP = viewport.firstChild;
-    double totalScrollExtent = cons.precedingScrollExtent;
-    while (sliverP != this) {
-      if (sliverP is RenderSliverRefresh) {
-        totalScrollExtent -= sliverP.geometry!.scrollExtent;
-        break;
-      }
-      sliverP = viewport.childAfter(sliverP!);
-    }
-    // consider about footer layoutExtent,it should be subtracted it's height
-    return totalScrollExtent > cons.viewportMainAxisExtent;
-  }
-
-  //  many sitiuation: 1. reverse 2. not reverse
-  // 3. follow content 4. unfollow content
-  //5. not full 6. full
-  double? computePaintOrigin(double? layoutExtent, bool reverse, bool follow) {
-    if (follow) {
-      if (reverse) {
-        return layoutExtent;
-      }
-      return 0.0;
-    } else {
-      if (reverse) {
-        return math.max(
-                constraints.viewportMainAxisExtent -
-                    constraints.precedingScrollExtent,
-                0.0) +
-            layoutExtent!;
-      } else {
-        return math.max(
-            constraints.viewportMainAxisExtent -
-                constraints.precedingScrollExtent,
-            0.0);
-      }
-    }
-  }
-
-  @override
-  void debugAssertDoesMeetConstraints() {
-    assert(geometry!.debugAssertIsValid(informationCollector: () sync* {
-      yield describeForError(
-          'The RenderSliver that returned the offending geometry was');
-    }));
-    assert(() {
-      if (geometry!.paintExtent > constraints.remainingPaintExtent) {
-        throw FlutterError.fromParts(<DiagnosticsNode>[
-          ErrorSummary(
-              'SliverGeometry has a paintOffset that exceeds the remainingPaintExtent from the constraints.'),
-          describeForError(
-              'The render object whose geometry violates the constraints is the following'),
-          ErrorDescription(
-            'The paintExtent must cause the child sliver to paint within the viewport, and so '
-            'cannot exceed the remainingPaintExtent.',
-          ),
-        ]);
-      }
-      return true;
-    }());
-  }
-
-  @override
-  void performLayout() {
-    assert(constraints.growthDirection == GrowthDirection.forward);
-    if (child == null) {
-      geometry = SliverGeometry.zero;
-      return;
-    }
-    bool active;
-    if (hideWhenNotFull! && mode != LoadStatus.noMore) {
-      active = _computeIfFull(constraints);
-    } else {
-      active = true;
-    }
-    if (active) {
-      child!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
-    } else {
-      child!.layout(
-          constraints.asBoxConstraints(maxExtent: 0.0, minExtent: 0.0),
-          parentUsesSize: true);
-    }
-    double childExtent = constraints.axis == Axis.vertical
-        ? child!.size.height
-        : child!.size.width;
-    final double paintedChildSize =
-        calculatePaintOffset(constraints, from: 0.0, to: childExtent);
-    final double cacheExtent =
-        calculateCacheOffset(constraints, from: 0.0, to: childExtent);
-    assert(paintedChildSize.isFinite);
-    assert(paintedChildSize >= 0.0);
-    if (active) {
-      // consider reverse loading and HideAlways==loadStyle
-      geometry = SliverGeometry(
-        scrollExtent: !_hasLayoutExtent! || !_computeIfFull(constraints)
-            ? 0
-            : layoutExtent,
-        paintExtent: paintedChildSize,
-        // this need to fix later
-        paintOrigin: computePaintOrigin(
-            !_hasLayoutExtent! || !_computeIfFull(constraints)
-                ? layoutExtent
-                : 0.0,
-            constraints.axisDirection == AxisDirection.up ||
-                constraints.axisDirection == AxisDirection.left,
-            _computeIfFull(constraints) || shouldFollowContent!)!,
-        cacheExtent: cacheExtent,
-        maxPaintExtent: childExtent,
-        hitTestExtent: paintedChildSize,
-        visible: true,
-        hasVisualOverflow: true,
-      );
-      setChildParentData(child!, constraints, geometry!);
-    } else {
-      geometry = SliverGeometry.zero;
-    }
-  }
-}
 
 class SliverRefreshBody extends SingleChildRenderObjectWidget {
   /// Creates a sliver that contains a single box widget.
