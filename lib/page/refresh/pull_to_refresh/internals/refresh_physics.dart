@@ -12,7 +12,6 @@ class RefreshPhysics extends ScrollPhysics {
   final double? maxOverScrollExtent;
   final double? topHitBoundary;
   final SpringDescription? springDescription;
-  final double? dragSpeedRatio;
   final RefreshController? controller;
   final int? updateFlag;
 
@@ -26,7 +25,6 @@ class RefreshPhysics extends ScrollPhysics {
       this.updateFlag,
       this.springDescription,
       this.controller,
-      this.dragSpeedRatio,
       this.topHitBoundary,
       this.maxOverScrollExtent})
       : super(parent: parent);
@@ -37,7 +35,6 @@ class RefreshPhysics extends ScrollPhysics {
       parent: buildParent(ancestor),
       updateFlag: updateFlag,
       springDescription: springDescription,
-      dragSpeedRatio: dragSpeedRatio,
       topHitBoundary: topHitBoundary,
       controller: controller,
       maxOverScrollExtent: maxOverScrollExtent,
@@ -82,6 +79,7 @@ class RefreshPhysics extends ScrollPhysics {
     }
   }
 
+  ///将物理应用到用户偏移
   @override
   double applyPhysicsToUserOffset(ScrollMetrics position, double offset) {
     viewportRender ??=
@@ -105,13 +103,12 @@ class RefreshPhysics extends ScrollPhysics {
               (overscrollPast - offset.abs()) / position.viewportDimension)
           : frictionFactor(overscrollPast / position.viewportDimension);
       final double direction = offset.sign;
-      return direction *
-          _applyFriction(overscrollPast, offset.abs(), friction) *
-          (dragSpeedRatio ?? 1.0);
+      return direction * _applyFriction(overscrollPast, offset.abs(), friction);
     }
     return super.applyPhysicsToUserOffset(position, offset);
   }
 
+  ///施加摩擦
   static double _applyFriction(
       double extentOutside, double absDelta, double gamma) {
     assert(absDelta > 0);
@@ -125,9 +122,11 @@ class RefreshPhysics extends ScrollPhysics {
     return total + absDelta;
   }
 
+  ///摩擦系数
   double frictionFactor(double overscrollFraction) =>
       0.52 * math.pow(1 - overscrollFraction, 2);
 
+  ///应用边界条件
   @override
   double applyBoundaryConditions(ScrollMetrics position, double value) {
     final ScrollPosition scrollPosition = position as ScrollPosition;
@@ -164,7 +163,6 @@ class RefreshPhysics extends ScrollPhysics {
         topBoundary < position.pixels) {
       return value - topBoundary;
     }
-
 
     // 检查用户是否正在拖动，它是导入的，某些设备可能不会以不同的帧和时间弹跳，弹跳返回不同的速度
     // ignore: invalid_use_of_protected_member

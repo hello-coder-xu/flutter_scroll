@@ -151,7 +151,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
       Scrollable.of(context)!.position.activity!.applyNewDimensions();
       _updateFlag = false;
     }
-    // 该条子现在应该具有的新布局范围。
+    // 该子sliver现在应该具有的新布局范围。
     final double layoutExtent =
         (_hasLayoutExtent ? 1.0 : 0.0) * _refreshIndicatorExtent;
     // 如果新的 layoutExtent 指令改变了，SliverGeometry 的

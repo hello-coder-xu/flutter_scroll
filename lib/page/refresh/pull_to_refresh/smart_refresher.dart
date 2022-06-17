@@ -178,7 +178,6 @@ class SmartRefresherState extends State<SmartRefresher> {
                     .runtimeType ==
                 BouncingScrollPhysics);
     return _physics = RefreshPhysics(
-      dragSpeedRatio: conf?.dragSpeedRatio ?? 1,
       springDescription: conf?.springDescription ??
           const SpringDescription(
             mass: 2.2,
@@ -281,8 +280,7 @@ class SmartRefresherState extends State<SmartRefresher> {
     }
 
     if (conf.topHitBoundary != _physics!.topHitBoundary ||
-        conf.maxOverScrollExtent != _physics!.maxOverScrollExtent ||
-        _physics!.dragSpeedRatio != conf.dragSpeedRatio) {
+        conf.maxOverScrollExtent != _physics!.maxOverScrollExtent) {
       return true;
     }
     return false;
@@ -524,9 +522,6 @@ class RefreshConfiguration extends InheritedWidget {
   /// 触发刷新的overScroll距离
   final double headerTriggerDistance;
 
-  /// 拖动滚动时的速度比，compute=origin物理拖动速度*dragSpeedRatio
-  final double dragSpeedRatio;
-
   /// 超出上边缘时的最大滚动距离
   final double? maxOverScrollExtent;
 
@@ -540,7 +535,6 @@ class RefreshConfiguration extends InheritedWidget {
     Key? key,
     required this.child,
     this.headerBuilder,
-    this.dragSpeedRatio = 1.0,
     this.springDescription = const SpringDescription(
       mass: 2.2,
       stiffness: 150,
@@ -553,7 +547,6 @@ class RefreshConfiguration extends InheritedWidget {
     this.enableRefreshVibrate = false,
     this.topHitBoundary,
   })  : assert(headerTriggerDistance > 0),
-        assert(dragSpeedRatio > 0),
         super(key: key, child: child);
 
   /// 构造 RefreshConfiguration 以从祖先节点复制属性
@@ -589,8 +582,6 @@ class RefreshConfiguration extends InheritedWidget {
             "search RefreshConfiguration anscestor return null,please  Make sure that RefreshConfiguration is the ancestor of that element"),
         headerBuilder =
             headerBuilder ?? RefreshConfiguration.of(context)!.headerBuilder,
-        dragSpeedRatio =
-            dragSpeedRatio ?? RefreshConfiguration.of(context)!.dragSpeedRatio,
         headerTriggerDistance = headerTriggerDistance ??
             RefreshConfiguration.of(context)!.headerTriggerDistance,
         springDescription = springDescription ??
@@ -614,7 +605,6 @@ class RefreshConfiguration extends InheritedWidget {
   @override
   bool updateShouldNotify(RefreshConfiguration oldWidget) {
     return skipCanRefresh != oldWidget.skipCanRefresh ||
-        dragSpeedRatio != oldWidget.dragSpeedRatio ||
         enableScrollWhenRefreshCompleted !=
             oldWidget.enableScrollWhenRefreshCompleted ||
         headerTriggerDistance != oldWidget.headerTriggerDistance ||
