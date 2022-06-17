@@ -17,7 +17,7 @@ abstract class RefreshIndicator extends StatefulWidget {
   /// 视觉范围指示器
   final double height;
 
-  ///布局偏移
+  /// 布局偏移
   final double offset;
 
   /// 刷新完成或失败的停止时间
@@ -35,6 +35,7 @@ abstract class RefreshIndicator extends StatefulWidget {
 abstract class RefreshIndicatorState<T extends RefreshIndicator>
     extends State<T>
     with IndicatorStateMixin<T, RefreshStatus>, RefreshProcessor {
+
   bool _inVisual() {
     return _position!.pixels < 0.0;
   }
@@ -95,6 +96,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
     }
   }
 
+  ///处理模式
   @override
   void _handleModeChange() {
     if (!mounted) {
@@ -123,7 +125,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
            _onOffsetChange 没有回调，它将保持失败或成功状态。
            2. 作为FrontStyle，当用户在刷新状态下拖动0~100时，需要在状态改变后重新设置
           */
-        WidgetsBinding.instance!.addPostFrameCallback((_) {
+        WidgetsBinding.instance?.addPostFrameCallback((_) {
           if (!mounted) {
             return;
           }
