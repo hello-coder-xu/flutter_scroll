@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_scroll/common/logger/logger_utils.dart';
 import '../smart_refresher.dart';
 import 'slivers.dart';
 
@@ -17,7 +19,7 @@ abstract class RefreshIndicator extends StatefulWidget {
   /// 视觉范围指示器
   final double height;
 
-  /// 布局偏移
+  ///布局偏移
   final double offset;
 
   /// 刷新完成或失败的停止时间
@@ -35,19 +37,22 @@ abstract class RefreshIndicator extends StatefulWidget {
 abstract class RefreshIndicatorState<T extends RefreshIndicator>
     extends State<T>
     with IndicatorStateMixin<T, RefreshStatus>, RefreshProcessor {
-
+  ///是否在视窗内
   bool _inVisual() {
+    Logger.write('test RefreshIndicatorState _inVisual');
     return _position!.pixels < 0.0;
   }
 
   ///计算越界距离
   @override
   double _calculateScrollOffset() {
+    Logger.write('test RefreshIndicatorState _calculateScrollOffset');
     return (floating ? widget.height : 0.0) - (_position?.pixels as num);
   }
 
   @override
   void _handleOffsetChange() {
+    Logger.write('test RefreshIndicatorState _handleOffsetChange');
     super._handleOffsetChange();
     final double overscrollPast = _calculateScrollOffset();
     onOffsetChange(overscrollPast);
@@ -56,6 +61,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
   ///根据越界距离更新头部状态
   @override
   void _dispatchModeByOffset(double offset) {
+    Logger.write('test RefreshIndicatorState _dispatchModeByOffset');
     if (floating) return;
     // no matter what activity is done, when offset ==0.0 and !floating,it should be set to idle for setting if CanDrag
     if (offset == 0.0) {
@@ -67,7 +73,9 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
     if ((activity!.velocity < 0.0) ||
         activity is DragScrollActivity ||
         activity is DrivenScrollActivity) {
+      //是否达到设定的刷新距离
       if (offset >= configuration!.headerTriggerDistance) {
+        //是否跳过刷新等待
         if (!configuration!.skipCanRefresh) {
           mode = RefreshStatus.canRefresh;
         } else {
@@ -81,9 +89,8 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
       } else {
         mode = RefreshStatus.idle;
       }
-    }
-    //主要用于回弹
-    else if (activity is BallisticScrollActivity) {
+    } else if (activity is BallisticScrollActivity) {
+      //主要用于回弹
       if (RefreshStatus.canRefresh == mode) {
         // refreshing
         floating = true;
@@ -96,9 +103,9 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
     }
   }
 
-  ///处理模式
   @override
   void _handleModeChange() {
+    Logger.write('test RefreshIndicatorState _handleModeChange');
     if (!mounted) {
       return;
     }
@@ -125,7 +132,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
            _onOffsetChange 没有回调，它将保持失败或成功状态。
            2. 作为FrontStyle，当用户在刷新状态下拖动0~100时，需要在状态改变后重新设置
           */
-        WidgetsBinding.instance?.addPostFrameCallback((_) {
+        WidgetsBinding.instance!.addPostFrameCallback((_) {
           if (!mounted) {
             return;
           }
@@ -152,16 +159,19 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
   //该方法可以提供一个回调来实现一些动画
   @override
   Future<void> readyToRefresh() {
+    Logger.write('test RefreshIndicatorState readyToRefresh');
     return Future.value();
   }
 
   // 这意味着状态将进入成功或失败
   @override
   Future<void> endRefresh() {
+    Logger.write('test RefreshIndicatorState endRefresh');
     return Future.delayed(widget.completeDuration);
   }
 
   bool needReverseAll() {
+    Logger.write('test RefreshIndicatorState needReverseAll');
     return true;
   }
 
@@ -170,6 +180,7 @@ abstract class RefreshIndicatorState<T extends RefreshIndicator>
 
   @override
   Widget build(BuildContext context) {
+    Logger.write('test RefreshIndicatorState build');
     return SliverRefresh(
       paintOffsetY: widget.offset,
       child: RotatedBox(
@@ -216,6 +227,7 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
 
   ///处理滚动时的偏移量
   void _handleOffsetChange() {
+    Logger.write('test IndicatorStateMixin _handleOffsetChange');
     if (!mounted) {
       return;
     }
@@ -236,11 +248,12 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
   }
 
   void _updateListener() {
+    Logger.write('test IndicatorStateMixin _updateListener');
     configuration = RefreshConfiguration.of(context);
     refresher = SmartRefresher.of(context);
     refresherState = SmartRefresher.ofState(context);
     RefreshNotifier<V>? newMode =
-        refresher!.controller.headerMode as RefreshNotifier<V>?;
+        refresher?.controller.headerMode as RefreshNotifier<V>?;
     final ScrollPosition newPosition = Scrollable.of(context)!.position;
     if (newMode != _mode) {
       _mode?.removeListener(_handleModeChange);
@@ -258,6 +271,7 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
   @override
   void initState() {
     if (V == RefreshStatus) {
+      print('test ----');
       SmartRefresher.of(context)?.controller.headerMode?.value =
           RefreshStatus.idle;
     }
@@ -283,7 +297,7 @@ mixin IndicatorStateMixin<T extends StatefulWidget, V> on State<T> {
   }
 
   void _onPositionUpdated(ScrollPosition newPosition) {
-    refresher!.controller.onPositionUpdated(newPosition);
+    refresher?.controller.onPositionUpdated(newPosition);
   }
 
   void _handleModeChange();

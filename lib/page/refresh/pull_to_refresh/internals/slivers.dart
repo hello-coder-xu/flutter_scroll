@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
+import 'package:flutter_scroll/common/logger/logger_utils.dart';
 import '../smart_refresher.dart';
 
 /// 渲染标题条小部件
@@ -32,6 +33,7 @@ class SliverRefresh extends SingleChildRenderObjectWidget {
 
   @override
   RenderSliverRefresh createRenderObject(BuildContext context) {
+    Logger.write('test SliverRefresh createRenderObject');
     return RenderSliverRefresh(
       refreshIndicatorExtent: refreshIndicatorLayoutExtent,
       hasLayoutExtent: floating,
@@ -43,6 +45,7 @@ class SliverRefresh extends SingleChildRenderObjectWidget {
   @override
   void updateRenderObject(
       BuildContext context, covariant RenderSliverRefresh renderObject) {
+    Logger.write('test SliverRefresh updateRenderObject');
     final RefreshStatus mode =
         SmartRefresher.of(context)!.controller.headerMode!.value;
     renderObject
@@ -83,6 +86,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
   bool _updateFlag = false;
 
   set refreshIndicatorLayoutExtent(double value) {
+    Logger.write('test RenderSliverRefresh refreshIndicatorLayoutExtent');
     assert(value >= 0.0);
     if (value == _refreshIndicatorExtent) return;
     _refreshIndicatorExtent = value;
@@ -96,6 +100,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
   bool _hasLayoutExtent;
 
   set hasLayoutExtent(bool value) {
+    Logger.write('test RenderSliverRefresh hasLayoutExtent');
     if (value == _hasLayoutExtent) return;
     if (!value) {
       _updateFlag = true;
@@ -116,6 +121,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
   }
 
   set updateFlag(u) {
+    Logger.write('test RenderSliverRefresh updateFlag');
     _updateFlag = u;
     markNeedsLayout();
   }
@@ -145,6 +151,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
 
   @override
   void performLayout() {
+    Logger.write('test RenderSliverRefresh performLayout');
     if (_updateFlag) {
       // ignore_for_file: INVALID_USE_OF_PROTECTED_MEMBER
       // ignore_for_file: INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER
@@ -165,13 +172,11 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
       layoutExtentOffsetCompensation = layoutExtent;
       return;
     }
+    //constraints.overlap:视图重叠大小
     bool active = constraints.overlap < 0.0 || layoutExtent > 0.0;
     final double overScrolledExtent =
         -(parent as RenderViewportBase).offset.pixels;
-    child!.layout(
-      constraints.asBoxConstraints(),
-      parentUsesSize: true,
-    );
+    child!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
     final double boxExtent = (constraints.axisDirection == AxisDirection.up ||
             constraints.axisDirection == AxisDirection.down)
         ? child!.size.height
@@ -193,12 +198,20 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
       switch (refreshStyle) {
         case RefreshStyle.follow:
           geometry = SliverGeometry(
+            //Sliver在主轴方向预估长度
             scrollExtent: layoutExtent,
+            //绘制的坐标原点，相对于自身布局位置
             paintOrigin: -boxExtent - constraints.scrollOffset + layoutExtent,
+            //可视区域中的绘制长度
             paintExtent: needPaintExtent,
+            //点击测试的范围
             hitTestExtent: needPaintExtent,
+            //是否会溢出Viewport，如果为true，Viewport便会裁剪
             hasVisualOverflow: overScrolledExtent < boxExtent,
+            //最大绘制长度
             maxPaintExtent: needPaintExtent,
+            //在 Viewport中占用的长度；如果列表滚动方向是垂直方向，则表示列表高度。
+            //范围[0,paintExtent]
             layoutExtent: math.min(needPaintExtent,
                 math.max(layoutExtent - constraints.scrollOffset, 0.0)),
           );
@@ -229,79 +242,7 @@ class RenderSliverRefresh extends RenderSliverSingleBoxAdapter {
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    Logger.write('test RenderSliverRefresh paint');
     context.paintChild(child!, Offset(offset.dx, offset.dy + paintOffsetY!));
-  }
-
-  @override
-  void applyPaintTransform(RenderObject child, Matrix4 transform) {}
-}
-
-
-class SliverRefreshBody extends SingleChildRenderObjectWidget {
-  /// 创建一个包含单个框小部件的条子。
-  const SliverRefreshBody({
-    Key? key,
-    Widget? child,
-  }) : super(key: key, child: child);
-
-  @override
-  RenderSliverRefreshBody createRenderObject(BuildContext context) =>
-      RenderSliverRefreshBody();
-}
-
-class RenderSliverRefreshBody extends RenderSliverSingleBoxAdapter {
-  /// 创建一个包装 [RenderBox] 的 [RenderSliver]。
-  RenderSliverRefreshBody({
-    RenderBox? child,
-  }) : super(child: child);
-
-  @override
-  void performLayout() {
-    if (child == null) {
-      geometry = SliverGeometry.zero;
-      return;
-    }
-    child!.layout(constraints.asBoxConstraints(maxExtent: 1111111),
-        parentUsesSize: true);
-    double? childExtent;
-    switch (constraints.axis) {
-      case Axis.horizontal:
-        childExtent = child!.size.width;
-        break;
-      case Axis.vertical:
-        childExtent = child!.size.height;
-        break;
-    }
-    if (childExtent == 1111111) {
-      child!.layout(
-          constraints.asBoxConstraints(
-              maxExtent: constraints.viewportMainAxisExtent),
-          parentUsesSize: true);
-    }
-    switch (constraints.axis) {
-      case Axis.horizontal:
-        childExtent = child!.size.width;
-        break;
-      case Axis.vertical:
-        childExtent = child!.size.height;
-        break;
-    }
-    final double paintedChildSize =
-        calculatePaintOffset(constraints, from: 0.0, to: childExtent);
-    final double cacheExtent =
-        calculateCacheOffset(constraints, from: 0.0, to: childExtent);
-
-    assert(paintedChildSize.isFinite);
-    assert(paintedChildSize >= 0.0);
-    geometry = SliverGeometry(
-      scrollExtent: childExtent,
-      paintExtent: paintedChildSize,
-      cacheExtent: cacheExtent,
-      maxPaintExtent: childExtent,
-      hitTestExtent: paintedChildSize,
-      hasVisualOverflow: childExtent > constraints.remainingPaintExtent ||
-          constraints.scrollOffset > 0.0,
-    );
-    setChildParentData(child!, constraints, geometry!);
   }
 }

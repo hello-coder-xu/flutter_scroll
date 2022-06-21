@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_scroll/common/logger/logger_utils.dart';
 import 'package:flutter_scroll/page/refresh/pull_to_refresh/smart_refresher.dart';
@@ -32,23 +34,69 @@ class _RefreshPageState extends State<RefreshPage> {
 
   ///模仿改造
   Widget pullToRefreshView() {
+    // return CustomScrollView(
+    //   physics: BouncingScrollPhysics(),
+    //   slivers: [
+    //     MyHeaderView(
+    //       child: Container(
+    //         height: 100,
+    //         color: Colors.black,
+    //         alignment: Alignment.center,
+    //         child: Text('header'),
+    //       ),
+    //     ),
+    //     SliverList(
+    //       delegate: SliverChildBuilderDelegate(
+    //         (context, index) => ListTile(
+    //           title: Text('$index'),
+    //         ),
+    //         childCount: 20,
+    //       ),
+    //     ),
+    //   ],
+    // );
     return SmartRefresher(
       controller: controller,
       scrollDirection: Axis.horizontal,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const PageScrollPhysics(),
+      reverse: true,
+      // child: ListView.builder(
+      //   scrollDirection: Axis.horizontal,
+      //   reverse: true,
+      //   physics: const PageScrollPhysics(),
+      //   itemBuilder: (context, index) => Container(
+      //     width: 1.sw,
+      //     height: 200.w,
+      //     color: Colors.primaries[(index + Random().nextInt(17)) % 17],
+      //     alignment: Alignment.center,
+      //     child: Text(
+      //       '第${index + 1}页：'
+      //       '\n实现下拉刷新：'
+      //       '\n1，给列表新增刷新头部'
+      //       '\n2，给头部新增滚动监听，并根据滚动显示对应视图'
+      //       '\n3，添加自定义物理动画',
+      //       style: const TextStyle(
+      //         fontSize: 16,
+      //         color: Colors.white,
+      //       ),
+      //     ),
+      //   ),
+      //   itemCount: 3,
+      // ),
+
+      child: PageView.builder(
+        reverse: true,
         itemBuilder: (context, index) => Container(
           width: 1.sw,
           height: 200.w,
-          color: Colors.primaries[index],
+          color: Colors.primaries[(index + Random().nextInt(17)) % 17],
           alignment: Alignment.center,
-          child: const Text(
-            '实现下拉刷新：'
+          child: Text(
+            '第${index + 1}页：'
+            '\n实现下拉刷新：'
             '\n1，给列表新增刷新头部'
             '\n2，给头部新增滚动监听，并根据滚动显示对应视图'
             '\n3，添加自定义物理动画',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               color: Colors.white,
             ),

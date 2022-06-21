@@ -8,10 +8,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_scroll/common/logger/logger_utils.dart';
 import 'package:flutter_scroll/page/refresh/pull_to_refresh/indicator/classic_indicator.dart';
 import 'package:flutter_scroll/page/refresh/pull_to_refresh/internals/indicator_wrap.dart';
 import 'package:flutter_scroll/page/refresh/pull_to_refresh/internals/refresh_physics.dart';
-import 'package:flutter_scroll/page/refresh/pull_to_refresh/internals/slivers.dart';
 
 // ignore_for_file: INVALID_USE_OF_PROTECTED_MEMBER
 // ignore_for_file: INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER
@@ -55,8 +55,6 @@ enum RefreshStyle {
 class SmartRefresher extends StatefulWidget {
   final Widget? child;
 
-  final Widget? header;
-
   final VoidCallback? onRefresh;
 
   /// 控制内部状态
@@ -85,7 +83,6 @@ class SmartRefresher extends StatefulWidget {
       {Key? key,
       required this.controller,
       this.child,
-      this.header,
       this.onRefresh,
       this.dragStartBehavior,
       this.primary,
@@ -102,8 +99,7 @@ class SmartRefresher extends StatefulWidget {
     required this.controller,
     required this.builder,
     this.onRefresh,
-  })  : header = null,
-        child = null,
+  })  : child = null,
         scrollController = null,
         scrollDirection = null,
         physics = null,
@@ -114,10 +110,12 @@ class SmartRefresher extends StatefulWidget {
         super(key: key);
 
   static SmartRefresher? of(BuildContext? context) {
+    Logger.write('test SmartRefresher of');
     return context!.findAncestorWidgetOfExactType<SmartRefresher>();
   }
 
   static SmartRefresherState? ofState(BuildContext? context) {
+    Logger.write('test SmartRefresher ofState');
     return context!.findAncestorStateOfType<SmartRefresherState>();
   }
 
@@ -138,6 +136,7 @@ class SmartRefresherState extends State<SmartRefresher> {
   //从子小部件构建Sliver
   List<Widget>? _buildSliversByChild(BuildContext context, Widget? child,
       RefreshConfiguration? configuration) {
+    Logger.write('test SmartRefresherState _buildSliversByChild');
     List<Widget>? slivers;
     if (child is ScrollView) {
       if (child is BoxScrollView) {
@@ -152,25 +151,18 @@ class SmartRefresherState extends State<SmartRefresher> {
         slivers = List.from(child.buildSlivers(context), growable: true);
       }
     } else if (child is! Scrollable) {
-      slivers = [
-        SliverRefreshBody(
-          child: child ?? Container(),
-        )
-      ];
+      slivers = [];
     }
-    slivers?.insert(
-      0,
-      widget.header ??
-          (configuration?.headerBuilder != null
-              ? configuration?.headerBuilder!()
-              : null) ??
-          defaultHeader,
-    );
+    slivers?.insert(0, defaultHeader);
     return slivers;
   }
 
+  ///获取物理动画
   ScrollPhysics _getScrollPhysics(
-      RefreshConfiguration? conf, ScrollPhysics physics) {
+    RefreshConfiguration? conf, //刷新全局配置
+    ScrollPhysics physics, //需要混入的物理动画
+  ) {
+    Logger.write('test SmartRefresherState _getScrollPhysics');
     final bool isBouncingPhysics = physics is BouncingScrollPhysics ||
         (physics is AlwaysScrollableScrollPhysics &&
             ScrollConfiguration.of(context)
@@ -195,7 +187,11 @@ class SmartRefresherState extends State<SmartRefresher> {
 
   // 构建 customScrollView
   Widget? _buildBodyBySlivers(
-      Widget? childView, List<Widget>? slivers, RefreshConfiguration? conf) {
+    Widget? childView,
+    List<Widget>? slivers,
+    RefreshConfiguration? conf,
+  ) {
+    Logger.write('test SmartRefresherState _buildBodyBySlivers');
     Widget? body;
     if (childView is! Scrollable) {
       bool? primary = widget.primary;
@@ -259,13 +255,7 @@ class SmartRefresherState extends State<SmartRefresher> {
         viewportBuilder: (context, offset) {
           Viewport viewport =
               childView.viewportBuilder(context, offset) as Viewport;
-          viewport.children.insert(
-              0,
-              widget.header ??
-                  (conf?.headerBuilder != null
-                      ? conf?.headerBuilder!()
-                      : null) ??
-                  defaultHeader);
+          viewport.children.insert(0, defaultHeader);
           return viewport;
         },
       );
@@ -274,6 +264,7 @@ class SmartRefresherState extends State<SmartRefresher> {
   }
 
   bool _ifNeedUpdatePhysics() {
+    Logger.write('test SmartRefresherState _ifNeedUpdatePhysics');
     RefreshConfiguration? conf = RefreshConfiguration.of(context);
     if (conf == null || _physics == null) {
       return false;
@@ -287,6 +278,7 @@ class SmartRefresherState extends State<SmartRefresher> {
   }
 
   void setCanDrag(bool canDrag) {
+    Logger.write('test SmartRefresherState setCanDrag');
     if (_canDrag == canDrag) {
       return;
     }
@@ -297,6 +289,7 @@ class SmartRefresherState extends State<SmartRefresher> {
 
   @override
   void didUpdateWidget(SmartRefresher oldWidget) {
+    Logger.write('test SmartRefresherState didUpdateWidget');
     if (widget.controller != oldWidget.controller) {
       widget.controller.headerMode!.value =
           oldWidget.controller.headerMode!.value;
@@ -306,6 +299,7 @@ class SmartRefresherState extends State<SmartRefresher> {
 
   @override
   void didChangeDependencies() {
+    Logger.write('test SmartRefresherState didChangeDependencies');
     super.didChangeDependencies();
     if (_ifNeedUpdatePhysics()) {
       _updatePhysics = !_updatePhysics;
@@ -314,6 +308,7 @@ class SmartRefresherState extends State<SmartRefresher> {
 
   @override
   void initState() {
+    Logger.write('test SmartRefresherState initState');
     if (widget.controller.initialRefresh) {
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         // 如果已安装，则避免一种情况：初始化完成后，然后在构建之前处理小部件。
@@ -327,12 +322,14 @@ class SmartRefresherState extends State<SmartRefresher> {
 
   @override
   void dispose() {
+    Logger.write('test SmartRefresherState dispose');
     widget.controller._detachPosition();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    Logger.write('test SmartRefresherState build');
     final RefreshConfiguration? configuration =
         RefreshConfiguration.of(context);
     Widget? body;
@@ -391,6 +388,7 @@ class RefreshController {
   }
 
   void _bindState(SmartRefresherState state) {
+    Logger.write('test RefreshController _bindState');
     assert(_refresherState == null,
         "Don't use one refreshController to multiple SmartRefresher,It will cause some unexpected bugs mostly in TabBarView");
     _refresherState = state;
@@ -398,16 +396,19 @@ class RefreshController {
 
   /// 建立指标时回调，并捕获可滚动的内部位置
   void onPositionUpdated(ScrollPosition newPosition) {
+    Logger.write('test RefreshController onPositionUpdated');
     position?.isScrollingNotifier.removeListener(_listenScrollEnd);
     position = newPosition;
     position!.isScrollingNotifier.addListener(_listenScrollEnd);
   }
 
   void _detachPosition() {
+    Logger.write('test RefreshController _detachPosition');
     _refresherState = null;
     position?.isScrollingNotifier.removeListener(_listenScrollEnd);
   }
 
+  ///查找指示器(刷新头部)
   StatefulElement? _findIndicator(BuildContext context, Type elementType) {
     StatefulElement? result;
     context.visitChildElements((Element e) {
@@ -425,6 +426,7 @@ class RefreshController {
   /// 但是 ScrollPhysics 没有提供一种在 outOfEdge 时回弹的方法（由 applyBouncingCondition 停止返回！= 0.0）
   /// 所以要让它回弹，应该触发 goBallistic 让它回弹
   void _listenScrollEnd() {
+    Logger.write('test RefreshController _listenScrollEnd');
     if (position != null && position!.outOfRange) {
       position?.activity?.applyNewDimensions();
     }
@@ -440,6 +442,7 @@ class RefreshController {
     assert(position != null,
         'Try not to call requestRefresh() before build,please call after the ui was rendered');
     if (isRefresh) return Future.value();
+    Logger.write('test RefreshController requestRefresh');
     StatefulElement? indicatorElement =
         _findIndicator(position!.context.storageContext, RefreshIndicator);
 
@@ -480,21 +483,25 @@ class RefreshController {
 
   /// 请求完成，标头将进入完成状态
   void refreshCompleted({bool resetFooterState = false}) {
+    Logger.write('test RefreshController refreshCompleted');
     headerMode?.value = RefreshStatus.completed;
   }
 
   /// 请求失败，头部显示失败状态
   void refreshFailed() {
+    Logger.write('test RefreshController refreshFailed');
     headerMode?.value = RefreshStatus.failed;
   }
 
   /// 不显示成功或失败，它会将标头状态设置为空闲并立即弹回
   void refreshToIdle() {
+    Logger.write('test RefreshController refreshToIdle');
     headerMode?.value = RefreshStatus.idle;
   }
 
   /// 对于某些特殊情况，您应该调用 dispose() 以确保安全，它可能会在父窗口小部件 dispose 后抛出错误
   void dispose() {
+    Logger.write('test RefreshController dispose');
     headerMode!.dispose();
     headerMode = null;
   }

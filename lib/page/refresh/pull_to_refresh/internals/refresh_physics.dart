@@ -3,16 +3,26 @@
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_scroll/common/logger/logger_utils.dart';
 import 'package:flutter_scroll/page/refresh/pull_to_refresh/internals/slivers.dart';
 import 'package:flutter_scroll/page/refresh/pull_to_refresh/smart_refresher.dart';
 import 'dart:math' as math;
 
 // ignore: MUST_BE_IMMUTABLE
 class RefreshPhysics extends ScrollPhysics {
+  //最大滚动越界距离
   final double? maxOverScrollExtent;
+
+  //定命中边界
   final double? topHitBoundary;
+
+  //弹簧说明
   final SpringDescription? springDescription;
+
+  //刷新控制器
   final RefreshController? controller;
+
+  //更新标签
   final int? updateFlag;
 
   /// 弹跳时找出视口，用于计算页眉和页脚中的 layoutExtent
@@ -20,15 +30,16 @@ class RefreshPhysics extends ScrollPhysics {
   RenderViewport? viewportRender;
 
   /// 创建从边缘反弹回来的滚动物理。
-  RefreshPhysics(
-      {ScrollPhysics? parent,
-      this.updateFlag,
-      this.springDescription,
-      this.controller,
-      this.topHitBoundary,
-      this.maxOverScrollExtent})
-      : super(parent: parent);
+  RefreshPhysics({
+    ScrollPhysics? parent,
+    this.updateFlag,
+    this.springDescription,
+    this.controller,
+    this.topHitBoundary,
+    this.maxOverScrollExtent,
+  }) : super(parent: parent);
 
+  ///提供给外部混入
   @override
   RefreshPhysics applyTo(ScrollPhysics? ancestor) {
     return RefreshPhysics(
@@ -60,6 +71,7 @@ class RefreshPhysics extends ScrollPhysics {
 
   @override
   bool shouldAcceptUserOffset(ScrollMetrics position) {
+    Logger.write('test RefreshPhysics shouldAcceptUserOffset');
     if (parent is NeverScrollableScrollPhysics) {
       return false;
     }
@@ -72,6 +84,7 @@ class RefreshPhysics extends ScrollPhysics {
   // 它可以完美地工作。
   @override
   Type get runtimeType {
+    Logger.write('test RefreshPhysics runtimeType=$updateFlag');
     if (updateFlag == 0) {
       return RefreshPhysics;
     } else {
@@ -82,11 +95,13 @@ class RefreshPhysics extends ScrollPhysics {
   ///将物理应用到用户偏移
   @override
   double applyPhysicsToUserOffset(ScrollMetrics position, double offset) {
+    Logger.write('test RefreshPhysics applyPhysicsToUserOffset');
     viewportRender ??=
         findViewport(controller!.position?.context.storageContext);
     if (offset > 0.0 && viewportRender?.firstChild is! RenderSliverRefresh) {
       return parent!.applyPhysicsToUserOffset(position, offset);
     }
+    //如果越界
     if (position.outOfRange) {
       final double overscrollPastStart =
           math.max(position.minScrollExtent - position.pixels, 0.0);
@@ -111,6 +126,7 @@ class RefreshPhysics extends ScrollPhysics {
   ///施加摩擦
   static double _applyFriction(
       double extentOutside, double absDelta, double gamma) {
+    Logger.write('test RefreshPhysics _applyFriction');
     assert(absDelta > 0);
     double total = 0.0;
     if (extentOutside > 0) {
@@ -129,12 +145,15 @@ class RefreshPhysics extends ScrollPhysics {
   ///应用边界条件
   @override
   double applyBoundaryConditions(ScrollMetrics position, double value) {
+    Logger.write('test RefreshPhysics applyBoundaryConditions');
     final ScrollPosition scrollPosition = position as ScrollPosition;
     viewportRender ??=
         findViewport(controller!.position?.context.storageContext);
+    //判断能否下拉刷新
     final bool enablePullDown = viewportRender == null
         ? false
         : viewportRender!.firstChild is RenderSliverRefresh;
+    //滚动距离未越界，或者不能下拉刷新，交给系统处理
     if (position.pixels - value > 0.0 && !enablePullDown) {
       return parent!.applyBoundaryConditions(position, value);
     }
@@ -149,6 +168,7 @@ class RefreshPhysics extends ScrollPhysics {
     final double topBoundary =
         position.minScrollExtent - maxOverScrollExtent! - topExtra;
 
+    //用户手离开屏幕还带有速度(快速拖动离开屏幕)
     // ignore: invalid_use_of_protected_member
     if (scrollPosition.activity is BallisticScrollActivity) {
       if (topHitBoundary != double.infinity) {
@@ -164,7 +184,7 @@ class RefreshPhysics extends ScrollPhysics {
       return value - topBoundary;
     }
 
-    // 检查用户是否正在拖动，它是导入的，某些设备可能不会以不同的帧和时间弹跳，弹跳返回不同的速度
+    // 用户手在屏幕上拖动
     // ignore: invalid_use_of_protected_member
     if (scrollPosition.activity is DragScrollActivity) {
       if (maxOverScrollExtent != double.infinity &&
@@ -179,6 +199,7 @@ class RefreshPhysics extends ScrollPhysics {
   @override
   Simulation? createBallisticSimulation(
       ScrollMetrics position, double velocity) {
+    Logger.write('test RefreshPhysics createBallisticSimulation');
     viewportRender ??=
         findViewport(controller!.position?.context.storageContext);
 
