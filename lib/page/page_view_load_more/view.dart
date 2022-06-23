@@ -25,16 +25,16 @@ class _PageViewLoadMorePageState extends State<PageViewLoadMorePage> {
         title: Text(toString()),
         centerTitle: true,
       ),
-      body: PageViewLoadMore.builder(
-        itemBuilder: (context, index) {
-          return Container(
+      body: PageViewLoadMore(
+        children: List.generate(
+          3,
+          (index) => Container(
             height: 200,
             child: Text('$index'),
             alignment: Alignment.center,
             color: Colors.primaries[index % 17],
-          );
-        },
-        itemCount: 3,
+          ),
+        ),
       ),
     );
   }

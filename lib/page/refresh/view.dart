@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_scroll/page/refresh/pull_to_refresh/smart_refresher.dart';
+import 'package:flutter_scroll/page/refresh/widget/list_view_footer.dart';
 import 'package:flutter_scroll/page/refresh/widget/list_view_header.dart';
 import 'package:get/get.dart';
 import 'logic.dart';
@@ -51,14 +52,27 @@ class _RefreshPageState extends State<RefreshPage> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) => Container(
-              height: 200,
+              height: 50,
               child: Text('$index'),
               alignment: Alignment.center,
               color: Colors.primaries[index % 17],
             ),
-            childCount: 13,
+            childCount: 23,
           ),
-        )
+        ),
+        ListViewFooter(
+          child: Container(
+            height: 50,
+            alignment: Alignment.center,
+            color: Colors.black,
+            child: const Text(
+              'header',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
