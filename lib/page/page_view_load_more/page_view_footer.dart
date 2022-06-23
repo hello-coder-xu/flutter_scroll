@@ -14,7 +14,6 @@ class PageViewFooter extends SingleChildRenderObjectWidget {
 }
 
 class RenderPageViewFooter extends RenderSliverSingleBoxAdapter {
-
   ///是否到到底部
   bool _computeIfFull(SliverConstraints cons) {
     final RenderViewport viewport = parent as RenderViewport;
@@ -30,8 +29,6 @@ class RenderPageViewFooter extends RenderSliverSingleBoxAdapter {
     // consider about footer layoutExtent,it should be subtracted it's height
     return totalScrollExtent > cons.viewportMainAxisExtent;
   }
-
-
 
   @override
   void performLayout() {
@@ -54,38 +51,36 @@ class RenderPageViewFooter extends RenderSliverSingleBoxAdapter {
 
     //获取控件正常显示的绘制大小
     final double paintedChildSize =
-    calculatePaintOffset(constraints, from: 0.0, to: childExtent);
+        calculatePaintOffset(constraints, from: 0.0, to: childExtent);
 
     assert(paintedChildSize.isFinite);
     assert(paintedChildSize >= 0.0);
-    //是否为活动的，overlap：当前控件与顶部控件重合距离
+
     final bool active = _computeIfFull(constraints);
+
     if (active) {
-      print("active "
-          "overlap=${constraints.overlap}  "
-          "layoutExtent=$childExtent  "
-          "scrollExtent=$childExtent  "
-          "paintOrigin=0"
-          "paintExtent=$childExtent  "
-          "maxPaintExtent=$childExtent  "
-          "remainingPaintExtent=${constraints.remainingPaintExtent}  "
-          "");
+      // print("active "
+      //     "layoutExtent=$childExtent  "
+      //     "scrollExtent=$childExtent  "
+      //     "paintOrigin=0"
+      //     "paintExtent=$childExtent  "
+      //     "maxPaintExtent=$childExtent  "
+      //     "remainingPaintExtent=${constraints.remainingPaintExtent}  "
+      //     "");
       geometry = SliverGeometry(
-        // sliver 可以滚动的范围
-        scrollExtent: childExtent,
+        scrollExtent: 0,
         paintOrigin: 0,
         // 绘制范围
-        paintExtent: childExtent,
+        paintExtent: paintedChildSize,
         // 最大绘制大小
         maxPaintExtent: childExtent,
-        // 布局占位(当前sliver的top到下一个silver的top位置，默认是paintExtent,会影响下一个Sliver的layout位置)
         layoutExtent: 0,
+        cacheExtent: paintedChildSize,
       );
-
+      setChildParentData(child!, constraints, geometry!);
     } else {
       /// 如果不想显示可以直接设置为 zero
       geometry = SliverGeometry.zero;
     }
-    setChildParentData(child!, constraints, geometry!);
   }
 }

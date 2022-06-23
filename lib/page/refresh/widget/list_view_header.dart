@@ -16,6 +16,7 @@ class ListViewHeader extends SingleChildRenderObjectWidget {
 }
 
 class RenderListViewHeader extends RenderSliverSingleBoxAdapter {
+  double layoutExtentOffsetCompensation = 0.0;
   @override
   void performLayout() {
     if (child == null) {

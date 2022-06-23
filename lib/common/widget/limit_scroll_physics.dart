@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
 import 'package:flutter/material.dart';
 
 ///限制物理滚动
@@ -19,7 +20,7 @@ class LimitScrollPhysics extends BouncingScrollPhysics {
 
   const LimitScrollPhysics({
     this.enableStart = true,
-    this.enableEnd = true,
+    this.enableEnd = false,
     this.childExtent = 50,
     this.maxStartScrollExtent = 100,
     this.maxEndScrollExtent = 100,
@@ -48,30 +49,49 @@ class LimitScrollPhysics extends BouncingScrollPhysics {
   /// value    :  本次位移
   @override
   double applyBoundaryConditions(ScrollMetrics position, double value) {
+    final ScrollPosition scrollPosition = position as ScrollPosition;
+
     print(
-        'test enableStart=$enableStart value=$value minScrollExtent=${position.minScrollExtent} pixels=${position.pixels} result=${value - position.pixels}');
+        'test value=$value pixels=${position.pixels} activity=${scrollPosition.activity.runtimeType}');
+
+    //用户手离开屏幕还带有速度(快速拖动离开屏幕)
+    // ignore: invalid_use_of_protected_member
+    if (scrollPosition.activity is BallisticScrollActivity) {
+      //滚动距离未越界，或者不能下拉刷新，交给系统处理
+    }
 
     // 命中-顶部边界
-    if (value < position.minScrollExtent &&
-        position.minScrollExtent >= position.pixels) {
+    if ((value < position.minScrollExtent &&
+        position.minScrollExtent >= position.pixels)) {
       if (!enableStart) {
         //不再继续越界滚动
         return value - position.pixels;
       }
       double topExtra = childExtent - maxStartScrollExtent;
       //是否超过最大滚动距离
-      bool overMaxScrollExtent = value < topExtra && topExtra < position.pixels;
-      if (overMaxScrollExtent) {
+      bool overMaxStartScrollExtent =
+          value < topExtra && topExtra < position.pixels;
+      if (overMaxStartScrollExtent) {
         //不再继续越界滚动
         return value - position.pixels;
       }
     }
 
     // 命中-底部边界
-    if (position.pixels < position.maxScrollExtent &&
-        position.maxScrollExtent < value &&
-        enableEnd) {
-      return value - position.pixels;
+    if (position.maxScrollExtent < value) {
+      if (!enableEnd) {
+        //不再继续越界滚动
+        return value - position.pixels;
+      }
+      double endExtent = position.maxScrollExtent + maxEndScrollExtent;
+
+      //是否超过最大滚动距离
+      bool overMaxScrollExtent =
+          value > endExtent && endExtent > position.pixels;
+      if (overMaxScrollExtent) {
+        //不再继续越界滚动
+        return value - position.pixels;
+      }
     }
 
     return 0.0;

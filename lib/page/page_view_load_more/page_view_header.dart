@@ -41,6 +41,8 @@ class RenderPageViewHeader extends RenderSliverSingleBoxAdapter {
 
     assert(paintedChildSize.isFinite);
     assert(paintedChildSize >= 0.0);
+
+
     //是否为活动的，overlap：当前控件与顶部控件重合距离
     final bool active = constraints.overlap < 0.0;
     //滚动时重合大小
